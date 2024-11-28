@@ -26,7 +26,12 @@ let project = Project(
             ),
             sources: ["RandomEats/Sources/**"],
             resources: ["RandomEats/Resources/**"],
-            dependencies: []
+            dependencies: [
+                .target(name: "Presentation"),
+                .target(name: "Domain"),
+                .target(name: "Data"),
+                .target(name: "Shared")
+            ]
         ),
         .target(
             name: "RandomEatsTests",
@@ -38,5 +43,98 @@ let project = Project(
             resources: [],
             dependencies: [.target(name: "RandomEats")]
         ),
+        // Presentation Module
+        .target(
+            name: "Presentation",
+            destinations: .iOS,
+            product: .framework,
+            bundleId: "com.example.presentation",
+            infoPlist: .default,
+            sources: ["Modules/Presentation/Sources/**"],
+            dependencies: [
+                .target(name: "Domain"),
+                .target(name: "Shared")
+            ]
+        ),
+        .target(
+            name: "PresentationTests",
+            destinations: .iOS,
+            product: .unitTests,
+            bundleId: "com.example.presentationTests",
+            infoPlist: .default,
+            sources: ["Modules/Presentation/Tests/**"],
+            dependencies: [
+                .target(name: "Presentation")
+            ]
+        ),
+        // Domain Module
+        .target(
+            name: "Domain",
+            destinations: .iOS,
+            product: .framework,
+            bundleId: "com.example.domain",
+            infoPlist: .default,
+            sources: ["Modules/Domain/Sources/**"],
+            dependencies: [
+                .target(name: "Shared")
+            ]
+        ),
+        .target(
+            name: "DomainTests",
+            destinations: .iOS,
+            product: .unitTests,
+            bundleId: "com.example.domainTests",
+            infoPlist: .default,
+            sources: ["Modules/Domain/Tests/**"],
+            dependencies: [
+                .target(name: "Domain")
+            ]
+        ),
+        // Data Module
+        .target(
+            name: "Data",
+            destinations: .iOS,
+            product: .framework,
+            bundleId: "com.example.data",
+            infoPlist: .default,
+            sources: ["Modules/Data/Sources/**"],
+            dependencies: [
+                .target(name: "Domain"),
+                .target(name: "Shared")
+            ]
+        ),
+        .target(
+            name: "DataTests",
+            destinations: .iOS,
+            product: .unitTests,
+            bundleId: "com.example.dataTests",
+            infoPlist: .default,
+            sources: ["Modules/Data/Tests/**"],
+            dependencies: [
+                .target(name: "Data")
+            ]
+        ),
+        // Shared Module
+        .target(
+            name: "Shared",
+            destinations: .iOS,
+            product: .framework,
+            bundleId: "com.example.shared",
+            infoPlist: .default,
+            sources: ["Modules/Shared/Sources/**"],
+            dependencies: []
+        ),
+        .target(
+            name: "SharedTests",
+            destinations: .iOS,
+            product: .unitTests,
+            bundleId: "com.example.sharedTests",
+            infoPlist: .default,
+            sources: ["Modules/Shared/Tests/**"],
+            dependencies: [
+                .target(name: "Shared")
+            ]
+        )
     ]
 )
+
