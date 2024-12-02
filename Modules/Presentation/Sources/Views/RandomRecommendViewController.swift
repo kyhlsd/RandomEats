@@ -11,6 +11,9 @@ import CombineCocoa
 
 public class RandomRecommendViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
+    private let allowedValues: [Float] = [0.0, 0.125, 0.25, 0.375, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    private let allowedDistances: [Int] = [300, 350, 400, 450, 500, 600, 700, 800, 900, 1000]
+    private var maximumDistance = 500
     
     private lazy var titleLabel = {
         let titleLabel = UILabel()
@@ -39,7 +42,7 @@ public class RandomRecommendViewController: UIViewController {
     }()
     private lazy var distanceSettingLabel = {
         let distanceSettingLabel = UILabel()
-        distanceSettingLabel.text = "거리 설정"
+        distanceSettingLabel.text = "최대 거리 설정 (\(maximumDistance)m)"
         distanceSettingLabel.textColor = .black
         distanceSettingLabel.font = .systemFont(ofSize: 12, weight: .medium)
         distanceSettingLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -89,7 +92,10 @@ public class RandomRecommendViewController: UIViewController {
                 return self.mapToAllowedValue(value: self.distanceSlider.value)
             }
             .sink { [weak self] allowedValue in
-                self?.distanceSlider.setValue(allowedValue, animated: false)
+                guard let self = self else { return }
+                distanceSlider.setValue(allowedValue, animated: false)
+                maximumDistance = mapToDistance(value: allowedValue)
+                distanceSettingLabel.text = "최대 거리 설정 (\(maximumDistance)m)"
             }
             .store(in: &cancellables)
         
@@ -132,10 +138,14 @@ public class RandomRecommendViewController: UIViewController {
     }
     
     private func mapToAllowedValue(value: Float) -> Float {
-        let allowedValues: [Float] = [0.0, 0.125, 0.25, 0.375, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         guard let closestValue = allowedValues.min(by: { abs($0 - value) < abs($1 - value) }) else {
             return value
         }
         return closestValue
+    }
+    
+    private func mapToDistance(value: Float) -> Int {
+        let index = allowedValues.firstIndex(of: value) ?? allowedValues.count / 2
+        return allowedDistances[index]
     }
 }
