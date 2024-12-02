@@ -7,6 +7,7 @@
 
 import UIKit
 import Combine
+import CombineCocoa
 
 public class RandomRecommendViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
@@ -82,15 +83,16 @@ public class RandomRecommendViewController: UIViewController {
 
         view.backgroundColor = .white
         
-        distanceSlider.publisher(for: \.value)
-            .map { [weak self] currentValue -> Float in
+        distanceSlider.controlEventPublisher(for: [.touchUpInside, .touchUpOutside])
+            .map { [weak self] _ -> Float in
                 guard let self = self else { return 0.5 }
-                return self.mapToAllowedValue(value: currentValue)
+                return self.mapToAllowedValue(value: self.distanceSlider.value)
             }
             .sink { [weak self] allowedValue in
                 self?.distanceSlider.setValue(allowedValue, animated: false)
             }
-            .store(in: &self.cancellables)
+            .store(in: &cancellables)
+        
         setupUI()
     }
     
@@ -130,19 +132,10 @@ public class RandomRecommendViewController: UIViewController {
     }
     
     private func mapToAllowedValue(value: Float) -> Float {
-        switch value {
-        case 0.0..<0.25:
-            print(0.0)
-            return 0.0
-        case 0.25..<0.75:
-            print(0.5)
-            return 0.5
-        case 0.75...1:
-            print(1.0)
-            return 1.0
-        default:
-            print(0.0)
-            return 0.5
+        let allowedValues: [Float] = [0.0, 0.125, 0.25, 0.375, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        guard let closestValue = allowedValues.min(by: { abs($0 - value) < abs($1 - value) }) else {
+            return value
         }
+        return closestValue
     }
 }

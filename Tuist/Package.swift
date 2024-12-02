@@ -8,7 +8,7 @@ import PackageDescription
         // Customize the product types for specific package product
         // Default is .staticFramework
         // productTypes: ["Alamofire": .framework,] 
-        productTypes: [:]
+        productTypes: ["CombineCocoa": .framework]
     )
 #endif
 
@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         // Add your own dependencies here:
         // .package(url: "https://github.com/Alamofire/Alamofire", from: "5.0.0"),
+        .package(url: "https://github.com/CombineCommunity/CombineCocoa.git", from: "0.4.1")
         // You can read more about dependencies here: https://docs.tuist.io/documentation/tuist/dependencies
     ]
 )
