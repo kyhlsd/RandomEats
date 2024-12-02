@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Presentation
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -20,10 +21,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
         
-        let viewController = UIViewController()
-        viewController.view.backgroundColor = .orange
-        
-        window?.rootViewController = viewController
+        window?.rootViewController = RandomRecommendViewController()
         window?.makeKeyAndVisible()
     }
 
