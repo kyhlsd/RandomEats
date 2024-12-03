@@ -115,6 +115,20 @@ public class RandomRecommendViewController: UIViewController {
         distanceLabelStack.translatesAutoresizingMaskIntoConstraints = false
         return distanceLabelStack
     }()
+    private lazy var randomRecommendButton = {
+        var config = UIButton.Configuration.plain()
+        var attributeContainer = AttributeContainer()
+        attributeContainer.font = UIFont.boldSystemFont(ofSize: 18)
+        config.attributedTitle = AttributedString("식당 랜덤 추천하기", attributes: attributeContainer)
+        config.baseForegroundColor = .white
+        config.contentInsets = .init(top: 12, leading: 0, bottom: 12, trailing: 0)
+        let randomRecommendButton = UIButton()
+        randomRecommendButton.configuration = config
+        randomRecommendButton.backgroundColor = UIColor(named: "ContrastColor")
+        randomRecommendButton.layer.cornerRadius = 10
+        randomRecommendButton.translatesAutoresizingMaskIntoConstraints = false
+        return randomRecommendButton
+    }()
     
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -143,6 +157,10 @@ public class RandomRecommendViewController: UIViewController {
             print("위치 검색하기")
         }, for: .touchUpInside)
         
+        randomRecommendButton.addAction(UIAction { _ in
+            print("랜덤 추천하기")
+        }, for: .touchUpInside)
+        
         setupUI()
     }
     
@@ -158,6 +176,7 @@ public class RandomRecommendViewController: UIViewController {
         view.addSubview(distanceContainer)
         distanceContainer.addSubview(distanceSlider)
         distanceContainer.addSubview(distanceLabelStack)
+        view.addSubview(randomRecommendButton)
         
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
@@ -206,6 +225,10 @@ public class RandomRecommendViewController: UIViewController {
             distanceLabelStack.trailingAnchor.constraint(equalTo: distanceContainer.trailingAnchor, constant: -10),
             distanceLabelStack.topAnchor.constraint(equalTo: distanceSlider.bottomAnchor, constant: 10),
             distanceLabelStack.bottomAnchor.constraint(equalTo: distanceContainer.bottomAnchor, constant: -10),
+            
+            randomRecommendButton.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            randomRecommendButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            randomRecommendButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -10),
         ])
     }
     
