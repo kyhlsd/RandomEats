@@ -11,9 +11,9 @@ import CombineCocoa
 
 public class RandomRecommendViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
-    private let allowedValues: [Float] = [0.0, 0.125, 0.25, 0.375, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    private let allowedDistances: [Int] = [300, 350, 400, 450, 500, 600, 700, 800, 900, 1000]
-    private var maximumDistance = 500
+    private let allowedValues: [Float] = [0.0, 0.25, 0.5, 0.75, 1.0]
+    private let allowedDistances: [Int] = [100, 200, 300, 400, 500]
+    private var maximumDistance = 300
     
     private lazy var titleLabel = {
         let titleLabel = UILabel()
@@ -30,6 +30,14 @@ public class RandomRecommendViewController: UIViewController {
         placeSettingLabel.font = .systemFont(ofSize: 12, weight: .medium)
         placeSettingLabel.translatesAutoresizingMaskIntoConstraints = false
         return placeSettingLabel
+    }()
+    private lazy var currentLocationButton = {
+        let currentLocationButton = UIButton()
+        currentLocationButton.setTitle("현재 위치로", for: .normal)
+        currentLocationButton.setTitleColor(.systemBlue, for: .normal)
+        currentLocationButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .semibold)
+        currentLocationButton.translatesAutoresizingMaskIntoConstraints = false
+        return currentLocationButton
     }()
     private lazy var placeLabel = {
         let placeLabel = UILabel()
@@ -58,17 +66,17 @@ public class RandomRecommendViewController: UIViewController {
     }()
     private lazy var distanceLabelStack = {
         let firstDistanceLabel = UILabel()
-        firstDistanceLabel.text = "300m"
+        firstDistanceLabel.text = "100m"
         firstDistanceLabel.textColor = .black
         firstDistanceLabel.font = .systemFont(ofSize: 15, weight: .semibold)
         
         let secondDistanceLabel = UILabel()
-        secondDistanceLabel.text = "500m"
+        secondDistanceLabel.text = "300m"
         secondDistanceLabel.textColor = .black
         secondDistanceLabel.font = .systemFont(ofSize: 15, weight: .semibold)
         
         let thirdDistanceLabel = UILabel()
-        thirdDistanceLabel.text = "1,000m"
+        thirdDistanceLabel.text = "500m"
         thirdDistanceLabel.textColor = .black
         thirdDistanceLabel.font = .systemFont(ofSize: 15, weight: .semibold)
         
@@ -99,6 +107,11 @@ public class RandomRecommendViewController: UIViewController {
             }
             .store(in: &cancellables)
         
+        currentLocationButton.addAction(UIAction { [weak self] _ in
+            print("현재 위치로 설정하기")
+            self?.placeLabel.text = "현재 위치로 설정됨"
+        }, for: .touchUpInside)
+        
         setupUI()
     }
     
@@ -107,6 +120,7 @@ public class RandomRecommendViewController: UIViewController {
         view.addSubview(placeSettingLabel)
         view.addSubview(placeLabel)
         view.addSubview(distanceSettingLabel)
+        view.addSubview(currentLocationButton)
         view.addSubview(distanceSlider)
         view.addSubview(distanceLabelStack)
         let safeArea = view.safeAreaLayoutGuide
@@ -116,8 +130,12 @@ public class RandomRecommendViewController: UIViewController {
             titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 10),
             
             placeSettingLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
-            placeSettingLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             placeSettingLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            
+            currentLocationButton.leadingAnchor.constraint(equalTo: placeSettingLabel.trailingAnchor, constant: 10),
+            currentLocationButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            currentLocationButton.topAnchor.constraint(equalTo: placeSettingLabel.topAnchor),
+            currentLocationButton.bottomAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor),
             
             placeLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             placeLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
