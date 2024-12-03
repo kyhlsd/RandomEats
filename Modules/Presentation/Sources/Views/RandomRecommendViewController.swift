@@ -18,7 +18,7 @@ public class RandomRecommendViewController: UIViewController {
     private lazy var titleLabel = {
         let titleLabel = UILabel()
         titleLabel.text = "RandomEats"
-        titleLabel.textColor = UIColor(named: "PrimaryColor")
+        titleLabel.textColor = .black
         titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         return titleLabel
@@ -33,7 +33,7 @@ public class RandomRecommendViewController: UIViewController {
         let placeSettingLabel = UILabel()
         placeSettingLabel.text = "위치 설정"
         placeSettingLabel.textColor = .black
-        placeSettingLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        placeSettingLabel.font = .systemFont(ofSize: 13, weight: .medium)
         placeSettingLabel.translatesAutoresizingMaskIntoConstraints = false
         return placeSettingLabel
     }()
@@ -41,7 +41,7 @@ public class RandomRecommendViewController: UIViewController {
         let currentLocationButton = UIButton()
         currentLocationButton.setTitle("현재 위치로", for: .normal)
         currentLocationButton.setTitleColor(.systemBlue, for: .normal)
-        currentLocationButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .semibold)
+        currentLocationButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
         currentLocationButton.translatesAutoresizingMaskIntoConstraints = false
         return currentLocationButton
     }()
@@ -58,16 +58,20 @@ public class RandomRecommendViewController: UIViewController {
         placeLabel.text = "숭실대학교"
         placeLabel.textColor = .black
         placeLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        placeLabel.backgroundColor = UIColor(named: "SecondaryColor")
-        
         placeLabel.translatesAutoresizingMaskIntoConstraints = false
         return placeLabel
+    }()
+    private lazy var searchButton = {
+        let searchButton = UIButton()
+        searchButton.setImage(UIImage(systemName: "location.magnifyingglass"), for: .normal)
+        searchButton.translatesAutoresizingMaskIntoConstraints = false
+        return searchButton
     }()
     private lazy var distanceSettingLabel = {
         let distanceSettingLabel = UILabel()
         distanceSettingLabel.text = "최대 거리 설정 (\(maximumDistance)m)"
         distanceSettingLabel.textColor = .black
-        distanceSettingLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        distanceSettingLabel.font = .systemFont(ofSize: 13, weight: .medium)
         distanceSettingLabel.translatesAutoresizingMaskIntoConstraints = false
         return distanceSettingLabel
     }()
@@ -135,6 +139,10 @@ public class RandomRecommendViewController: UIViewController {
             self?.placeLabel.text = "현재 위치로 설정됨"
         }, for: .touchUpInside)
         
+        searchButton.addAction(UIAction { _ in
+            print("위치 검색하기")
+        }, for: .touchUpInside)
+        
         setupUI()
     }
     
@@ -145,6 +153,7 @@ public class RandomRecommendViewController: UIViewController {
         view.addSubview(currentLocationButton)
         view.addSubview(placeContainer)
         placeContainer.addSubview(placeLabel)
+        placeContainer.addSubview(searchButton)
         view.addSubview(distanceSettingLabel)
         view.addSubview(distanceContainer)
         distanceContainer.addSubview(distanceSlider)
@@ -161,30 +170,33 @@ public class RandomRecommendViewController: UIViewController {
             separatorLine.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
             separatorLine.heightAnchor.constraint(equalToConstant: 1),
             
-            placeSettingLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            placeSettingLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 20),
             placeSettingLabel.topAnchor.constraint(equalTo: separatorLine.bottomAnchor, constant: 10),
             
             currentLocationButton.leadingAnchor.constraint(equalTo: placeSettingLabel.trailingAnchor, constant: 10),
             currentLocationButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-            currentLocationButton.topAnchor.constraint(equalTo: placeSettingLabel.topAnchor),
-            currentLocationButton.bottomAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor),
+            currentLocationButton.bottomAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor, constant: 7),
             
             placeContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             placeContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-            placeContainer.topAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor, constant: 10),
+            placeContainer.topAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor, constant: 5),
             
             placeLabel.topAnchor.constraint(equalTo: placeContainer.topAnchor, constant: 10),
             placeLabel.leadingAnchor.constraint(equalTo: placeContainer.leadingAnchor, constant: 15),
-            placeLabel.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -15),
             placeLabel.bottomAnchor.constraint(equalTo: placeContainer.bottomAnchor, constant: -10),
             
-            distanceSettingLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            searchButton.topAnchor.constraint(equalTo: placeLabel.topAnchor),
+            searchButton.leadingAnchor.constraint(equalTo: placeLabel.trailingAnchor, constant: 15),
+            searchButton.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -15),
+            searchButton.bottomAnchor.constraint(equalTo: placeLabel.bottomAnchor),
+            
+            distanceSettingLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 20),
             distanceSettingLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             distanceSettingLabel.topAnchor.constraint(equalTo: placeContainer.bottomAnchor, constant: 10),
             
             distanceContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             distanceContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-            distanceContainer.topAnchor.constraint(equalTo: distanceSettingLabel.bottomAnchor, constant: 10),
+            distanceContainer.topAnchor.constraint(equalTo: distanceSettingLabel.bottomAnchor, constant: 5),
             
             distanceSlider.leadingAnchor.constraint(equalTo: distanceContainer.leadingAnchor, constant: 10),
             distanceSlider.trailingAnchor.constraint(equalTo: distanceContainer.trailingAnchor, constant: -10),
