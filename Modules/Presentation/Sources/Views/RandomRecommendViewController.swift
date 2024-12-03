@@ -23,6 +23,12 @@ public class RandomRecommendViewController: UIViewController {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         return titleLabel
     }()
+    private let separatorLine: UIView = {
+        let separatorLine = UIView()
+        separatorLine.backgroundColor = .lightGray
+        separatorLine.translatesAutoresizingMaskIntoConstraints = false
+        return separatorLine
+    }()
     private lazy var placeSettingLabel = {
         let placeSettingLabel = UILabel()
         placeSettingLabel.text = "위치 설정"
@@ -117,6 +123,7 @@ public class RandomRecommendViewController: UIViewController {
     
     private func setupUI() {
         view.addSubview(titleLabel)
+        view.addSubview(separatorLine)
         view.addSubview(placeSettingLabel)
         view.addSubview(placeLabel)
         view.addSubview(distanceSettingLabel)
@@ -129,8 +136,13 @@ public class RandomRecommendViewController: UIViewController {
             titleLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 10),
             
+            separatorLine.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            separatorLine.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            separatorLine.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            separatorLine.heightAnchor.constraint(equalToConstant: 1),
+            
             placeSettingLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
-            placeSettingLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            placeSettingLabel.topAnchor.constraint(equalTo: separatorLine.bottomAnchor, constant: 10),
             
             currentLocationButton.leadingAnchor.constraint(equalTo: placeSettingLabel.trailingAnchor, constant: 10),
             currentLocationButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
