@@ -18,14 +18,14 @@ public class RandomRecommendViewController: UIViewController {
     private lazy var titleLabel = {
         let titleLabel = UILabel()
         titleLabel.text = "RandomEats"
-        titleLabel.textColor = .black
+        titleLabel.textColor = UIColor(named: "PrimaryColor")
         titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         return titleLabel
     }()
     private let separatorLine: UIView = {
         let separatorLine = UIView()
-        separatorLine.backgroundColor = .lightGray
+        separatorLine.backgroundColor = UIColor(named: "ContrastColor")
         separatorLine.translatesAutoresizingMaskIntoConstraints = false
         return separatorLine
     }()
@@ -45,12 +45,21 @@ public class RandomRecommendViewController: UIViewController {
         currentLocationButton.translatesAutoresizingMaskIntoConstraints = false
         return currentLocationButton
     }()
+    private lazy var placeContainer = {
+        let placeContainer = UIView()
+        placeContainer.layer.cornerRadius = 10
+        placeContainer.layer.masksToBounds = true
+        placeContainer.backgroundColor = UIColor(named: "SecondaryColor")
+        placeContainer.translatesAutoresizingMaskIntoConstraints = false
+        return placeContainer
+    }()
     private lazy var placeLabel = {
         let placeLabel = UILabel()
         placeLabel.text = "숭실대학교"
         placeLabel.textColor = .black
         placeLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        placeLabel.backgroundColor = .systemGray
+        placeLabel.backgroundColor = UIColor(named: "SecondaryColor")
+        
         placeLabel.translatesAutoresizingMaskIntoConstraints = false
         return placeLabel
     }()
@@ -61,6 +70,14 @@ public class RandomRecommendViewController: UIViewController {
         distanceSettingLabel.font = .systemFont(ofSize: 12, weight: .medium)
         distanceSettingLabel.translatesAutoresizingMaskIntoConstraints = false
         return distanceSettingLabel
+    }()
+    private lazy var distanceContainer = {
+        let distanceContainer = UIView()
+        distanceContainer.layer.cornerRadius = 10
+        distanceContainer.layer.masksToBounds = true
+        distanceContainer.backgroundColor = UIColor(named: "SecondaryColor")
+        distanceContainer.translatesAutoresizingMaskIntoConstraints = false
+        return distanceContainer
     }()
     private lazy var distanceSlider = {
         let distanceSlider = UISlider()
@@ -98,7 +115,7 @@ public class RandomRecommendViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .white
+        view.backgroundColor = UIColor(named: "BackgroundColor")
         
         distanceSlider.controlEventPublisher(for: [.touchUpInside, .touchUpOutside])
             .map { [weak self] _ -> Float in
@@ -125,11 +142,14 @@ public class RandomRecommendViewController: UIViewController {
         view.addSubview(titleLabel)
         view.addSubview(separatorLine)
         view.addSubview(placeSettingLabel)
-        view.addSubview(placeLabel)
-        view.addSubview(distanceSettingLabel)
         view.addSubview(currentLocationButton)
-        view.addSubview(distanceSlider)
-        view.addSubview(distanceLabelStack)
+        view.addSubview(placeContainer)
+        placeContainer.addSubview(placeLabel)
+        view.addSubview(distanceSettingLabel)
+        view.addSubview(distanceContainer)
+        distanceContainer.addSubview(distanceSlider)
+        distanceContainer.addSubview(distanceLabelStack)
+        
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
@@ -149,21 +169,31 @@ public class RandomRecommendViewController: UIViewController {
             currentLocationButton.topAnchor.constraint(equalTo: placeSettingLabel.topAnchor),
             currentLocationButton.bottomAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor),
             
-            placeLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
-            placeLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-            placeLabel.topAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor, constant: 10),
+            placeContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            placeContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            placeContainer.topAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor, constant: 10),
+            
+            placeLabel.topAnchor.constraint(equalTo: placeContainer.topAnchor, constant: 10),
+            placeLabel.leadingAnchor.constraint(equalTo: placeContainer.leadingAnchor, constant: 15),
+            placeLabel.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -15),
+            placeLabel.bottomAnchor.constraint(equalTo: placeContainer.bottomAnchor, constant: -10),
             
             distanceSettingLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             distanceSettingLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-            distanceSettingLabel.topAnchor.constraint(equalTo: placeLabel.bottomAnchor, constant: 10),
+            distanceSettingLabel.topAnchor.constraint(equalTo: placeContainer.bottomAnchor, constant: 10),
             
-            distanceSlider.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
-            distanceSlider.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-            distanceSlider.topAnchor.constraint(equalTo: distanceSettingLabel.bottomAnchor, constant: 10),
+            distanceContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            distanceContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            distanceContainer.topAnchor.constraint(equalTo: distanceSettingLabel.bottomAnchor, constant: 10),
             
-            distanceLabelStack.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
-            distanceLabelStack.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            distanceSlider.leadingAnchor.constraint(equalTo: distanceContainer.leadingAnchor, constant: 10),
+            distanceSlider.trailingAnchor.constraint(equalTo: distanceContainer.trailingAnchor, constant: -10),
+            distanceSlider.topAnchor.constraint(equalTo: distanceContainer.topAnchor, constant: 10),
+            
+            distanceLabelStack.leadingAnchor.constraint(equalTo: distanceContainer.leadingAnchor, constant: 10),
+            distanceLabelStack.trailingAnchor.constraint(equalTo: distanceContainer.trailingAnchor, constant: -10),
             distanceLabelStack.topAnchor.constraint(equalTo: distanceSlider.bottomAnchor, constant: 10),
+            distanceLabelStack.bottomAnchor.constraint(equalTo: distanceContainer.bottomAnchor, constant: -10),
         ])
     }
     
