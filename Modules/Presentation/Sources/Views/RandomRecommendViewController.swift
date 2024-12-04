@@ -328,7 +328,6 @@ public class RandomRecommendViewController: UIViewController {
             placeSettingLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 20),
             placeSettingLabel.topAnchor.constraint(equalTo: separatorLine.bottomAnchor, constant: 10),
             
-            currentLocationButton.leadingAnchor.constraint(equalTo: placeSettingLabel.trailingAnchor, constant: 10),
             currentLocationButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             currentLocationButton.bottomAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor, constant: 7),
             
