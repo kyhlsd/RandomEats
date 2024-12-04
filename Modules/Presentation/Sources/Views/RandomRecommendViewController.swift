@@ -134,7 +134,7 @@ public class RandomRecommendViewController: UIViewController {
         let restaurantContainer = UIView()
         restaurantContainer.layer.cornerRadius = 10
         restaurantContainer.layer.masksToBounds = true
-        restaurantContainer.backgroundColor = .systemGray4
+        restaurantContainer.backgroundColor = UIColor(named: "PrimaryColor")
         restaurantContainer.translatesAutoresizingMaskIntoConstraints = false
         return restaurantContainer
     }()
