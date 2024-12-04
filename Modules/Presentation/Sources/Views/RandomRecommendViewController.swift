@@ -15,6 +15,13 @@ public class RandomRecommendViewController: UIViewController {
     private let allowedDistances: [Int] = [100, 200, 300, 400, 500]
     private var maximumDistance = 300
     
+    private lazy var titleImageView = {
+        let titleImageView = UIImageView()
+        titleImageView.image = UIImage(systemName: "fork.knife")
+        titleImageView.tintColor = .black
+        titleImageView.translatesAutoresizingMaskIntoConstraints = false
+        return titleImageView
+    }()
     private lazy var titleLabel = {
         let titleLabel = UILabel()
         titleLabel.text = "RandomEats"
@@ -279,6 +286,7 @@ public class RandomRecommendViewController: UIViewController {
     }
     
     private func setupUI() {
+        view.addSubview(titleImageView)
         view.addSubview(titleLabel)
         view.addSubview(separatorLine)
         view.addSubview(placeSettingLabel)
@@ -303,7 +311,12 @@ public class RandomRecommendViewController: UIViewController {
         
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            titleImageView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            titleImageView.topAnchor.constraint(equalTo: titleLabel.topAnchor, constant: 3),
+            titleImageView.widthAnchor.constraint(equalToConstant: 25),
+            titleImageView.bottomAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: -3),
+            
+            titleLabel.leadingAnchor.constraint(equalTo: titleImageView.trailingAnchor, constant: 5),
             titleLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 10),
             
