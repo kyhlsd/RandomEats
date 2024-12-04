@@ -115,19 +115,125 @@ public class RandomRecommendViewController: UIViewController {
         distanceLabelStack.translatesAutoresizingMaskIntoConstraints = false
         return distanceLabelStack
     }()
-    private lazy var randomRecommendButton = {
+    private lazy var recommendRestaurantLabel = {
+        let recommendRestaurantLabel = UILabel()
+        recommendRestaurantLabel.text = "추천 식당"
+        recommendRestaurantLabel.textColor = .black
+        recommendRestaurantLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        recommendRestaurantLabel.translatesAutoresizingMaskIntoConstraints = false
+        return recommendRestaurantLabel
+    }()
+    private lazy var restaurantContainer = {
+        let restaurantContainer = UIView()
+        restaurantContainer.layer.cornerRadius = 10
+        restaurantContainer.layer.masksToBounds = true
+        restaurantContainer.backgroundColor = .systemGray4
+        restaurantContainer.translatesAutoresizingMaskIntoConstraints = false
+        return restaurantContainer
+    }()
+    private lazy var restaurantNameLabel = {
+        let restaurantNameLabel = UILabel()
+        restaurantNameLabel.text = "스톤504 / 양식"
+        restaurantNameLabel.textColor = .black
+        restaurantNameLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        restaurantNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        return restaurantNameLabel
+    }()
+    private lazy var restaurantImageView = {
+        let menuImageView = UIImageView()
+        menuImageView.image = UIImage(named: "SampleRestaurantImage")
+        menuImageView.layer.cornerRadius = 10
+        menuImageView.layer.masksToBounds = true
+        menuImageView.translatesAutoresizingMaskIntoConstraints = false
+        return menuImageView
+    }()
+    private lazy var ratingLabel = {
+        let ratingLabel = UILabel()
+        ratingLabel.text = "평점 : 4.1"
+        ratingLabel.textColor = .black
+        ratingLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        ratingLabel.translatesAutoresizingMaskIntoConstraints = false
+        return ratingLabel
+    }()
+    private lazy var ratingStack = {
+        let firstStar = UIImageView(image: UIImage(systemName: "star.fill"))
+        let secondStar = UIImageView(image: UIImage(systemName: "star.fill"))
+        let thirdStar = UIImageView(image: UIImage(systemName: "star.leadinghalf.filled"))
+        let fourthStar = UIImageView(image: UIImage(systemName: "star"))
+        let fifthStar = UIImageView(image: UIImage(systemName: "star"))
+        
+        [firstStar, secondStar, thirdStar, fourthStar, fifthStar].forEach { star in
+            star.tintColor = UIColor(named: "ContrastColor")
+                star.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    star.widthAnchor.constraint(equalToConstant: 16),
+                    star.heightAnchor.constraint(equalToConstant: 16)
+                ])
+            }
+        
+        let ratingStack = UIStackView(arrangedSubviews: [firstStar, secondStar, thirdStar, fourthStar, fifthStar])
+        ratingStack.axis = .horizontal
+        ratingStack.distribution = .equalSpacing
+        ratingStack.translatesAutoresizingMaskIntoConstraints = false
+       return ratingStack
+    }()
+    private lazy var restaurantDistanceLabel = {
+        let restaurantDistanceLabel = UILabel()
+        restaurantDistanceLabel.text = "거리 : 170 m"
+        restaurantDistanceLabel.textColor = .black
+        restaurantDistanceLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        restaurantDistanceLabel.translatesAutoresizingMaskIntoConstraints = false
+        return restaurantDistanceLabel
+    }()
+    private lazy var restaurantInfoButton = {
+        let restaurantInfoButton = UIButton()
+        restaurantInfoButton.setTitle("식당 정보 보기", for: .normal)
+        restaurantInfoButton.setTitleColor(.systemBlue, for: .normal)
+        restaurantInfoButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
+        restaurantInfoButton.translatesAutoresizingMaskIntoConstraints = false
+        return restaurantInfoButton
+    }()
+    private lazy var recommendAgainButton = {
         var config = UIButton.Configuration.plain()
+        
         var attributeContainer = AttributeContainer()
-        attributeContainer.font = UIFont.boldSystemFont(ofSize: 18)
-        config.attributedTitle = AttributedString("식당 랜덤 추천하기", attributes: attributeContainer)
+        attributeContainer.font = UIFont.boldSystemFont(ofSize: 15)
+        config.attributedTitle = AttributedString("다시하기", attributes: attributeContainer)
         config.baseForegroundColor = .white
-        config.contentInsets = .init(top: 12, leading: 0, bottom: 12, trailing: 0)
+        config.image = UIImage(systemName: "arrow.clockwise")?.withConfiguration(
+            UIImage.SymbolConfiguration(pointSize: 10, weight: .semibold)
+        )
+        config.imagePlacement = .leading
+        config.imagePadding = 8
+        config.contentInsets = .init(top: 8, leading: 0, bottom: 8, trailing: 0)
+        
         let randomRecommendButton = UIButton()
         randomRecommendButton.configuration = config
-        randomRecommendButton.backgroundColor = UIColor(named: "ContrastColor")
+        randomRecommendButton.backgroundColor = .black
         randomRecommendButton.layer.cornerRadius = 10
         randomRecommendButton.translatesAutoresizingMaskIntoConstraints = false
         return randomRecommendButton
+    }()
+    private lazy var directionsButton = {
+        var config = UIButton.Configuration.plain()
+        
+        var attributeContainer = AttributeContainer()
+        attributeContainer.font = UIFont.boldSystemFont(ofSize: 15)
+        config.attributedTitle = AttributedString("길찾기", attributes: attributeContainer)
+        config.baseForegroundColor = .white
+        config.image = UIImage(systemName: "arrow.triangle.turn.up.right.diamond.fill")?.withConfiguration(
+            UIImage.SymbolConfiguration(pointSize: 12, weight: .medium)
+        )
+        config.imagePlacement = .leading
+        config.imagePadding = 8
+        config.contentInsets = .init(top: 8, leading: 0, bottom: 8, trailing: 0)
+        
+        let directionsButton = UIButton()
+        directionsButton.configuration = config
+        directionsButton.backgroundColor = .black
+        directionsButton.layer.cornerRadius = 10
+        directionsButton.translatesAutoresizingMaskIntoConstraints = false
+        return directionsButton
     }()
     
     public override func viewDidLoad() {
@@ -157,8 +263,16 @@ public class RandomRecommendViewController: UIViewController {
             print("위치 검색하기")
         }, for: .touchUpInside)
         
-        randomRecommendButton.addAction(UIAction { _ in
-            print("랜덤 추천하기")
+        restaurantInfoButton.addAction(UIAction { _ in
+            print("식당 정보 보기")
+        }, for: .touchUpInside)
+        
+        recommendAgainButton.addAction(UIAction { _ in
+            print("다시하기")
+        }, for: .touchUpInside)
+        
+        directionsButton.addAction(UIAction { _ in
+            print("길찾기")
         }, for: .touchUpInside)
         
         setupUI()
@@ -176,7 +290,16 @@ public class RandomRecommendViewController: UIViewController {
         view.addSubview(distanceContainer)
         distanceContainer.addSubview(distanceSlider)
         distanceContainer.addSubview(distanceLabelStack)
-        view.addSubview(randomRecommendButton)
+        view.addSubview(recommendRestaurantLabel)
+        view.addSubview(restaurantContainer)
+        restaurantContainer.addSubview(restaurantNameLabel)
+        restaurantContainer.addSubview(restaurantImageView)
+        restaurantContainer.addSubview(ratingLabel)
+        restaurantContainer.addSubview(ratingStack)
+        restaurantContainer.addSubview(restaurantDistanceLabel)
+        restaurantContainer.addSubview(restaurantInfoButton)
+        restaurantContainer.addSubview(recommendAgainButton)
+        restaurantContainer.addSubview(directionsButton)
         
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
@@ -226,9 +349,44 @@ public class RandomRecommendViewController: UIViewController {
             distanceLabelStack.topAnchor.constraint(equalTo: distanceSlider.bottomAnchor, constant: 10),
             distanceLabelStack.bottomAnchor.constraint(equalTo: distanceContainer.bottomAnchor, constant: -10),
             
-            randomRecommendButton.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
-            randomRecommendButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-            randomRecommendButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -10),
+            recommendRestaurantLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 20),
+            recommendRestaurantLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            recommendRestaurantLabel.topAnchor.constraint(equalTo: distanceContainer.bottomAnchor, constant: 20),
+            
+            restaurantContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            restaurantContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            restaurantContainer.topAnchor.constraint(equalTo: recommendRestaurantLabel.bottomAnchor, constant: 10),
+            
+            restaurantNameLabel.leadingAnchor.constraint(equalTo: restaurantContainer.leadingAnchor, constant: 20),
+            restaurantNameLabel.trailingAnchor.constraint(equalTo: restaurantContainer.trailingAnchor, constant: -20),
+            restaurantNameLabel.topAnchor.constraint(equalTo: restaurantContainer.topAnchor, constant: 12),
+            
+            restaurantImageView.leadingAnchor.constraint(equalTo: restaurantContainer.leadingAnchor, constant: 20),
+            restaurantImageView.trailingAnchor.constraint(equalTo: restaurantContainer.trailingAnchor, constant: -20),
+            restaurantImageView.topAnchor.constraint(equalTo: restaurantNameLabel.bottomAnchor, constant: 12),
+            restaurantImageView.heightAnchor.constraint(equalToConstant: 200),
+            
+            ratingLabel.leadingAnchor.constraint(equalTo: restaurantContainer.leadingAnchor, constant: 20),
+            ratingLabel.topAnchor.constraint(equalTo: restaurantImageView.bottomAnchor, constant: 12),
+            
+            ratingStack.leadingAnchor.constraint(equalTo: ratingLabel.trailingAnchor, constant: 5),
+            ratingStack.centerYAnchor.constraint(equalTo: ratingLabel.centerYAnchor),
+            
+            restaurantDistanceLabel.trailingAnchor.constraint(equalTo: restaurantContainer.trailingAnchor, constant: -20),
+            restaurantDistanceLabel.topAnchor.constraint(equalTo: restaurantImageView.bottomAnchor, constant: 12),
+            
+            restaurantInfoButton.leadingAnchor.constraint(equalTo: restaurantContainer.leadingAnchor, constant: 20),
+            restaurantInfoButton.topAnchor.constraint(equalTo: restaurantDistanceLabel.bottomAnchor),
+            
+            recommendAgainButton.leadingAnchor.constraint(equalTo: restaurantContainer.leadingAnchor, constant: 20),
+            recommendAgainButton.trailingAnchor.constraint(equalTo: restaurantContainer.centerXAnchor, constant: -10),
+            recommendAgainButton.topAnchor.constraint(equalTo: restaurantInfoButton.bottomAnchor, constant: 8),
+            recommendAgainButton.bottomAnchor.constraint(equalTo: restaurantContainer.bottomAnchor, constant: -12),
+            
+            directionsButton.leadingAnchor.constraint(equalTo: restaurantContainer.centerXAnchor, constant: 10),
+            directionsButton.trailingAnchor.constraint(equalTo: restaurantContainer.trailingAnchor, constant: -20),
+            directionsButton.topAnchor.constraint(equalTo: recommendAgainButton.topAnchor),
+            directionsButton.bottomAnchor.constraint(equalTo: recommendAgainButton.bottomAnchor),
         ])
     }
     
