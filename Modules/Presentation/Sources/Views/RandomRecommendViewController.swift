@@ -248,6 +248,7 @@ public class RandomRecommendViewController: UIViewController {
 
         view.backgroundColor = UIColor(named: "BackgroundColor")
         
+        // Slider 값 변경에 따른 UI 업데이트
         distanceSlider.controlEventPublisher(for: [.touchUpInside, .touchUpOutside])
             .map { [weak self] _ -> Float in
                 guard let self = self else { return 0.5 }
@@ -261,6 +262,7 @@ public class RandomRecommendViewController: UIViewController {
             }
             .store(in: &cancellables)
         
+        // Button Actions
         currentLocationButton.addAction(UIAction { [weak self] _ in
             print("현재 위치로 설정하기")
             self?.placeLabel.text = "현재 위치로 설정됨"
@@ -270,8 +272,9 @@ public class RandomRecommendViewController: UIViewController {
             print("위치 검색하기")
         }, for: .touchUpInside)
         
-        restaurantInfoButton.addAction(UIAction { _ in
-            print("식당 정보 보기")
+        restaurantInfoButton.addAction(UIAction { [weak self] _ in
+            let webViewController = WebViewController()
+            self?.present(webViewController, animated: true, completion: nil)
         }, for: .touchUpInside)
         
         recommendAgainButton.addAction(UIAction { _ in
