@@ -13,7 +13,6 @@ class WebViewController: UIViewController {
         let closeButton = UIButton()
         closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
         closeButton.tintColor = .black
-//        closeButton.translatesAutoresizingMaskIntoConstraints = false
         return closeButton
     }()
     private lazy var navigationBar = {

@@ -130,12 +130,29 @@ public class RandomRecommendViewController: UIViewController {
         recommendRestaurantLabel.translatesAutoresizingMaskIntoConstraints = false
         return recommendRestaurantLabel
     }()
+    private lazy var randomRecommendButton = {
+        var config = UIButton.Configuration.plain()
+        
+        var attributeContainer = AttributeContainer()
+        attributeContainer.font = UIFont.boldSystemFont(ofSize: 15)
+        config.attributedTitle = AttributedString("주변 식당 랜덤 추천하기", attributes: attributeContainer)
+        config.baseForegroundColor = .black
+        config.contentInsets = .init(top: 12, leading: 0, bottom: 12, trailing: 0)
+        
+        let randomRecommendButton = UIButton()
+        randomRecommendButton.configuration = config
+        randomRecommendButton.backgroundColor = UIColor(named: "PrimaryColor")
+        randomRecommendButton.layer.cornerRadius = 10
+        randomRecommendButton.translatesAutoresizingMaskIntoConstraints = false
+        return randomRecommendButton
+    }()
     private lazy var restaurantContainer = {
         let restaurantContainer = UIView()
         restaurantContainer.layer.cornerRadius = 10
         restaurantContainer.layer.masksToBounds = true
         restaurantContainer.backgroundColor = UIColor(named: "PrimaryColor")
         restaurantContainer.translatesAutoresizingMaskIntoConstraints = false
+        restaurantContainer.isHidden = true
         return restaurantContainer
     }()
     private lazy var restaurantNameLabel = {
@@ -281,6 +298,11 @@ public class RandomRecommendViewController: UIViewController {
             print("위치 검색하기")
         }, for: .touchUpInside)
         
+        randomRecommendButton.addAction(UIAction { [weak self] _ in
+            self?.randomRecommendButton.isHidden = true
+            self?.restaurantContainer.isHidden = false
+        }, for: .touchUpInside)
+        
         restaurantInfoButton.addAction(UIAction { [weak self] _ in
             let webViewController = WebViewController()
             self?.present(webViewController, animated: true, completion: nil)
@@ -311,6 +333,7 @@ public class RandomRecommendViewController: UIViewController {
         distanceContainer.addSubview(distanceSlider)
         distanceContainer.addSubview(distanceLabelStack)
         view.addSubview(recommendRestaurantLabel)
+        view.addSubview(randomRecommendButton)
         view.addSubview(restaurantContainer)
         restaurantContainer.addSubview(restaurantNameLabel)
         restaurantContainer.addSubview(restaurantImageView)
@@ -376,6 +399,10 @@ public class RandomRecommendViewController: UIViewController {
             recommendRestaurantLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 20),
             recommendRestaurantLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             recommendRestaurantLabel.topAnchor.constraint(equalTo: distanceContainer.bottomAnchor, constant: 20),
+            
+            randomRecommendButton.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            randomRecommendButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            randomRecommendButton.topAnchor.constraint(equalTo: recommendRestaurantLabel.bottomAnchor, constant: 10),
             
             restaurantContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             restaurantContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
