@@ -257,6 +257,15 @@ public class RandomRecommendViewController: UIViewController {
             .sink { [weak self] allowedValue in
                 guard let self = self else { return }
                 distanceSlider.setValue(allowedValue, animated: false)
+            }
+            .store(in: &cancellables)
+        distanceSlider.valuePublisher
+            .map { [weak self] value -> Float in
+                guard let self = self else { return 0.5 }
+                return self.mapToAllowedValue(value: value)
+            }
+            .sink { [weak self] allowedValue in
+                guard let self = self else { return }
                 maximumDistance = mapToDistance(value: allowedValue)
                 distanceSettingLabel.text = "최대 거리 설정 (\(maximumDistance)m)"
             }
