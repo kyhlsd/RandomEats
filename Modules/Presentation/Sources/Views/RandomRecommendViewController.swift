@@ -15,6 +15,17 @@ public class RandomRecommendViewController: UIViewController {
     private let allowedDistances: [Int] = [100, 200, 300, 400, 500]
     private var maximumDistance = 300
     
+    private var locationViewModel: LocationViewModel
+    
+    public init(locationViewModel: LocationViewModel) {
+        self.locationViewModel = locationViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     private lazy var titleImageView = {
         let titleImageView = UIImageView()
         titleImageView.image = UIImage(systemName: "fork.knife")
@@ -288,9 +299,12 @@ public class RandomRecommendViewController: UIViewController {
             }
             .store(in: &cancellables)
         
+        bindLocationViewModel()
+        
         // Button Actions
         currentLocationButton.addAction(UIAction { [weak self] _ in
             print("현재 위치로 설정하기")
+            self?.locationViewModel.fetchCurrentLocation()
             self?.placeLabel.text = "현재 위치로 설정됨"
         }, for: .touchUpInside)
         
@@ -439,6 +453,23 @@ public class RandomRecommendViewController: UIViewController {
             directionsButton.topAnchor.constraint(equalTo: recommendAgainButton.topAnchor),
             directionsButton.bottomAnchor.constraint(equalTo: recommendAgainButton.bottomAnchor),
         ])
+    }
+    
+    private func bindLocationViewModel() {
+        locationViewModel.$location
+            .sink { location in
+                if let location = location {
+                    print(location)
+                }
+            }
+            .store(in: &cancellables)
+        locationViewModel.$errorMessage
+            .sink { errorMessage in
+                if let errorMessage = errorMessage {
+                    print(errorMessage)
+                }
+            }
+            .store(in: &cancellables)
     }
     
     private func mapToAllowedValue(value: Float) -> Float {

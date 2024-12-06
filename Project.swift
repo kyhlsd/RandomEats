@@ -54,6 +54,7 @@ let project = Project(
             sources: ["Modules/Presentation/Sources/**"],
             dependencies: [
                 .target(name: "Domain"),
+                .target(name: "Data"),
                 .target(name: "Shared"),
                 .external(name: "CombineCocoa")
             ]

@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import Domain
+import Data
 import Presentation
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -21,18 +23,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
         
-//        // 식당 랜덤 추천 탭
-//        let firstViewController = RandomRecommendViewController()
-//        let firstNavigationController = UINavigationController(rootViewController: firstViewController)
-//        firstNavigationController.tabBarItem = UITabBarItem(title: "랜덤 추천", image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0)
-//        
-//        // 식당 지도 탭
-//        let secondViewController = RestaurantMapViewController()
-//        let secondNavigationController = UINavigationController(rootViewController: secondViewController)
-//        secondNavigationController.tabBarItem = UITabBarItem(title: "식당 지도", image: UIImage(systemName: "map"), tag: 1)
-//        
-//        setupTabBarController(with: [firstNavigationController, secondNavigationController])
-        let firstViewController = RandomRecommendViewController()
+        // Location 관련 의존성 주입
+        let locationService = LocationServiceImplementation()
+        let locationRepository = LocationRepositoryImplementation(locationService: locationService)
+        let locationUseCase = LocationUseCase(locationRepository: locationRepository)
+        let locationViewModel = LocationViewModel(locationUseCase: locationUseCase)
+        
+        let firstViewController = RandomRecommendViewController(locationViewModel: locationViewModel)
         firstViewController.tabBarItem = UITabBarItem(title: "랜덤 추천", image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0)
         let secondViewController = RestaurantMapViewController()
         secondViewController.tabBarItem = UITabBarItem(title: "식당 지도", image: UIImage(systemName: "map"), tag: 1)
