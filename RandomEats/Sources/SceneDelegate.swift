@@ -29,7 +29,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let locationUseCase = LocationUseCase(locationRepository: locationRepository)
         let locationViewModel = LocationViewModel(locationUseCase: locationUseCase)
         
-        let firstViewController = RandomRecommendViewController(locationViewModel: locationViewModel)
+        // ReverseGeocoding 관련 의존성 주입
+        let reverseGeocodingService = ReverseGeocodingServiceImplementaion()
+        let reverseGeocodingRepository = ReverseGeocodingRepositoryImplementation(reverseGeocodingService: reverseGeocodingService)
+        let reverseGeocodingUseCase = ReverseGeocodingUseCase(reverseGeocodingRepository: reverseGeocodingRepository)
+        let reverseGeocodingViewModel = ReverseGeocodingViewModel(reverseGeocodingUseCase: reverseGeocodingUseCase)
+        
+        let randomRecommendViewModel = RandomRecommendViewModel(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel)
+//        let firstViewController = RandomRecommendViewController(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel)
+        let firstViewController = RandomRecommendViewController(randomRecommendViewModel: randomRecommendViewModel)
         firstViewController.tabBarItem = UITabBarItem(title: "랜덤 추천", image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0)
         let secondViewController = RestaurantMapViewController()
         secondViewController.tabBarItem = UITabBarItem(title: "식당 지도", image: UIImage(systemName: "map"), tag: 1)

@@ -15,10 +15,18 @@ public class RandomRecommendViewController: UIViewController {
     private let allowedDistances: [Int] = [100, 200, 300, 400, 500]
     private var maximumDistance = 300
     
-    private var locationViewModel: LocationViewModel
+//    private var locationViewModel: LocationViewModel
+//    private var reverseGeocodingViewModel: ReverseGeocodingViewModel
+    private var randomRecommendViewModel: RandomRecommendViewModel
     
-    public init(locationViewModel: LocationViewModel) {
-        self.locationViewModel = locationViewModel
+//    public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel) {
+//        self.locationViewModel = locationViewModel
+//        self.reverseGeocodingViewModel = reverseGeocodingViewModel
+//        super.init(nibName: nil, bundle: nil)
+//    }
+    
+    public init(randomRecommendViewModel: RandomRecommendViewModel) {
+        self.randomRecommendViewModel = randomRecommendViewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -299,13 +307,15 @@ public class RandomRecommendViewController: UIViewController {
             }
             .store(in: &cancellables)
         
-        bindLocationViewModel()
+//        bindLocationViewModel()
+        bindViewModel()
         
         // Button Actions
         currentLocationButton.addAction(UIAction { [weak self] _ in
             print("현재 위치로 설정하기")
-            self?.locationViewModel.fetchCurrentLocation()
-            self?.placeLabel.text = "현재 위치로 설정됨"
+//            self?.locationViewModel.fetchCurrentLocation()
+            self?.randomRecommendViewModel.fetchCurrentLocationAndAddress()
+//            self?.placeLabel.text = "현재 위치로 설정됨"
         }, for: .touchUpInside)
         
         searchButton.addAction(UIAction { _ in
@@ -455,22 +465,46 @@ public class RandomRecommendViewController: UIViewController {
         ])
     }
     
-    private func bindLocationViewModel() {
-        locationViewModel.$location
-            .sink { location in
-                if let location = location {
-                    print(location)
+//    private func bindLocationViewModel() {
+//        locationViewModel.$location
+//            .sink { location in
+//                if let location = location {
+//                    print(location)
+//                }
+//            }
+//            .store(in: &cancellables)
+//        locationViewModel.$errorMessage
+//            .sink { errorMessage in
+//                if let errorMessage = errorMessage {
+//                    print(errorMessage)
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+    
+    private func bindViewModel() {
+        // 주소 업데이트 바인딩
+        randomRecommendViewModel.$currentAddress
+            .sink { [weak self] address in
+                if let address = address {
+                    print("Current Address: \(address)")
+                    
+                    DispatchQueue.main.async {
+                        self?.placeLabel.text = address
+                    }
                 }
             }
             .store(in: &cancellables)
-        locationViewModel.$errorMessage
+        
+        // 에러 메시지 바인딩
+        randomRecommendViewModel.$errorMessage
             .sink { errorMessage in
                 if let errorMessage = errorMessage {
-                    print(errorMessage)
+                    print("Error: \(errorMessage)")
                 }
             }
             .store(in: &cancellables)
-    }
+        }
     
     private func mapToAllowedValue(value: Float) -> Float {
         guard let closestValue = allowedValues.min(by: { abs($0 - value) < abs($1 - value) }) else {

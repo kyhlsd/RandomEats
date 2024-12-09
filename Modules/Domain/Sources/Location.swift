@@ -15,5 +15,13 @@ public struct Location {
         self.latitude = latitude
         self.longitude = longitude
     }
+    
+    public func getLatitude() -> Double {
+        return latitude
+    }
+    
+    public func getLongitude() -> Double {
+        return longitude
+    }
 }
 
