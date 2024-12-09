@@ -22,6 +22,8 @@ let project = Project(
                             ]
                         ]
                     ],
+                    "NSLocationWhenInUseUsageDescription": "위치 정보를 사용합니다.",
+                    "GOOGLE_PLACES_API_KEY": "$(GOOGLE_PLACES_API_KEY)"
                 ]
             ),
             sources: ["RandomEats/Sources/**"],
