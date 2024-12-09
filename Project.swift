@@ -31,7 +31,8 @@ let project = Project(
                 .target(name: "Domain"),
                 .target(name: "Data"),
                 .target(name: "Shared"),
-                .external(name: "CombineCocoa")
+                .external(name: "CombineCocoa"),
+                .external(name: "GooglePlaces")
             ]
         ),
         .target(
@@ -103,7 +104,8 @@ let project = Project(
             sources: ["Modules/Data/Sources/**"],
             dependencies: [
                 .target(name: "Domain"),
-                .target(name: "Shared")
+                .target(name: "Shared"),
+                .external(name: "GooglePlaces")
             ]
         ),
         .target(
