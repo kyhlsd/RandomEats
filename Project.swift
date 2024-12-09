@@ -22,6 +22,8 @@ let project = Project(
                             ]
                         ]
                     ],
+                    "NSLocationWhenInUseUsageDescription": "위치 정보를 사용합니다.",
+                    "GOOGLE_PLACES_API_KEY": "$(GOOGLE_PLACES_API_KEY)"
                 ]
             ),
             sources: ["RandomEats/Sources/**"],
@@ -30,7 +32,9 @@ let project = Project(
                 .target(name: "Presentation"),
                 .target(name: "Domain"),
                 .target(name: "Data"),
-                .target(name: "Shared")
+                .target(name: "Shared"),
+                .external(name: "CombineCocoa"),
+                .external(name: "GooglePlaces")
             ]
         ),
         .target(
@@ -53,7 +57,9 @@ let project = Project(
             sources: ["Modules/Presentation/Sources/**"],
             dependencies: [
                 .target(name: "Domain"),
-                .target(name: "Shared")
+                .target(name: "Data"),
+                .target(name: "Shared"),
+                .external(name: "CombineCocoa")
             ]
         ),
         .target(
@@ -100,7 +106,8 @@ let project = Project(
             sources: ["Modules/Data/Sources/**"],
             dependencies: [
                 .target(name: "Domain"),
-                .target(name: "Shared")
+                .target(name: "Shared"),
+                .external(name: "GooglePlaces")
             ]
         ),
         .target(

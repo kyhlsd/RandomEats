@@ -6,6 +6,9 @@
 //
 
 import UIKit
+import Domain
+import Data
+import Presentation
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -20,10 +23,46 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
         
-        let viewController = UIViewController()
-        viewController.view.backgroundColor = .orange
+        // Location 관련 의존성 주입
+        let locationService = LocationServiceImplementation()
+        let locationRepository = LocationRepositoryImplementation(locationService: locationService)
+        let locationUseCase = LocationUseCase(locationRepository: locationRepository)
+        let locationViewModel = LocationViewModel(locationUseCase: locationUseCase)
         
-        window?.rootViewController = viewController
+        // ReverseGeocoding 관련 의존성 주입
+        let reverseGeocodingService = ReverseGeocodingServiceImplementaion()
+        let reverseGeocodingRepository = ReverseGeocodingRepositoryImplementation(reverseGeocodingService: reverseGeocodingService)
+        let reverseGeocodingUseCase = ReverseGeocodingUseCase(reverseGeocodingRepository: reverseGeocodingRepository)
+        let reverseGeocodingViewModel = ReverseGeocodingViewModel(reverseGeocodingUseCase: reverseGeocodingUseCase)
+        
+        let randomRecommendViewModel = RandomRecommendViewModel(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel)
+//        let firstViewController = RandomRecommendViewController(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel)
+        let firstViewController = RandomRecommendViewController(randomRecommendViewModel: randomRecommendViewModel)
+        firstViewController.tabBarItem = UITabBarItem(title: "랜덤 추천", image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0)
+        let secondViewController = RestaurantMapViewController()
+        secondViewController.tabBarItem = UITabBarItem(title: "식당 지도", image: UIImage(systemName: "map"), tag: 1)
+        setupTabBarController(with: [firstViewController, secondViewController])
+    }
+    
+    // TabBarController 설정 함수
+    private func setupTabBarController(with viewControllers: [UIViewController]) {
+        let tabBarController = UITabBarController()
+        tabBarController.viewControllers = viewControllers
+        
+        tabBarController.tabBar.backgroundColor = UIColor(named: "BackgroundColor")
+        tabBarController.tabBar.isTranslucent = false
+        
+        if #available(iOS 15.0, *) {
+            let appearance = UITabBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.shadowColor = UIColor.lightGray
+            tabBarController.tabBar.standardAppearance = appearance
+            tabBarController.tabBar.scrollEdgeAppearance = appearance
+        }
+        
+        tabBarController.delegate = self
+        
+        window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
     }
 
@@ -56,4 +95,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
 
+}
+
+extension SceneDelegate: UITabBarControllerDelegate {
+    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+        if let navigationController = viewController as? UINavigationController {
+            navigationController.viewControllers = [navigationController.viewControllers.first].compactMap { $0 }
+        }
+    }
 }
