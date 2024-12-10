@@ -35,7 +35,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let reverseGeocodingUseCase = ReverseGeocodingUseCase(reverseGeocodingRepository: reverseGeocodingRepository)
         let reverseGeocodingViewModel = ReverseGeocodingViewModel(reverseGeocodingUseCase: reverseGeocodingUseCase)
         
-        let randomRecommendViewModel = RandomRecommendViewModel(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel)
+        // NearbyRestaurant 관련 의존성 주입
+        let nearbyRestaurantService = NearbyRestaurantServiceImplementaion()
+        let nearbyRestaurantRepository = NearbyRestaurantRepositoryImplementation(nearbyRestaurantService: nearbyRestaurantService)
+        let nearbyRestaurantUseCase = NearbyRestaurantUseCase(nearbyRestaurantRepository: nearbyRestaurantRepository)
+        let nearbyRestaurantViewModel = NearbyRestaurantViewModel(nearbyRestaurantUseCase: nearbyRestaurantUseCase)
+        
+        let randomRecommendViewModel = RandomRecommendViewModel(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel, nearbyRestaurantViewModel: nearbyRestaurantViewModel)
 //        let firstViewController = RandomRecommendViewController(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel)
         let firstViewController = RandomRecommendViewController(randomRecommendViewModel: randomRecommendViewModel)
         firstViewController.tabBarItem = UITabBarItem(title: "랜덤 추천", image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0)

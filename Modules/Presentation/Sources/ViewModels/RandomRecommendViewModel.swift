@@ -8,18 +8,21 @@
 import Foundation
 import Combine
 import Domain
+import Data
 
 public class RandomRecommendViewModel {
     private let locationViewModel: LocationViewModel
     private let reverseGeocodingViewModel: ReverseGeocodingViewModel
+    private let nearbyRestaurantViewModel: NearbyRestaurantViewModel
     private var cancellables = Set<AnyCancellable>()
     
     @Published public var currentAddress: String?
     @Published public var errorMessage: String?
     
-    public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel) {
+    public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, nearbyRestaurantViewModel: NearbyRestaurantViewModel) {
         self.locationViewModel = locationViewModel
         self.reverseGeocodingViewModel = reverseGeocodingViewModel
+        self.nearbyRestaurantViewModel = nearbyRestaurantViewModel
         bindViewModels()
     }
     
@@ -68,5 +71,12 @@ public class RandomRecommendViewModel {
     // ReverseGeocodingViewModel을 사용해 주소 변환
     private func fetchAddress(for location: Location) {
         reverseGeocodingViewModel.fetchAddress(for: location)
+    }
+    
+    //주변 식당 정보 가져오기
+    public func fetchNearbyRestaurants() {
+        if let location = locationViewModel.location {
+            nearbyRestaurantViewModel.fetchNearbyRestaurant(for: location)
+        }
     }
 }

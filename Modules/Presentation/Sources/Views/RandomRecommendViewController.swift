@@ -323,6 +323,7 @@ public class RandomRecommendViewController: UIViewController {
         }, for: .touchUpInside)
         
         randomRecommendButton.addAction(UIAction { [weak self] _ in
+            self?.randomRecommendViewModel.fetchNearbyRestaurants()
             self?.randomRecommendButton.isHidden = true
             self?.restaurantContainer.isHidden = false
         }, for: .touchUpInside)

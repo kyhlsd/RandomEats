@@ -34,7 +34,6 @@ let project = Project(
                 .target(name: "Data"),
                 .target(name: "Shared"),
                 .external(name: "CombineCocoa"),
-                .external(name: "GooglePlaces")
             ]
         ),
         .target(
