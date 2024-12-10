@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import GooglePlaces
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -15,12 +14,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        if let googlePlacesAPIKey = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_PLACES_API_KEY") as? String {
-            print("success : \(googlePlacesAPIKey)")
-            GMSPlacesClient.provideAPIKey(googlePlacesAPIKey)
-        } else {
-            print("Failed to get API Key")
-        }
         return true
     }
 

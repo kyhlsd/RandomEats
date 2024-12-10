@@ -106,7 +106,8 @@ let project = Project(
             dependencies: [
                 .target(name: "Domain"),
                 .target(name: "Shared"),
-                .external(name: "GooglePlaces")
+                .external(name: "GooglePlaces"),
+                .external(name: "Alamofire")
             ]
         ),
         .target(
