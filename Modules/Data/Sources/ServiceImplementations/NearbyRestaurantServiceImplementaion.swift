@@ -3,16 +3,12 @@ import Foundation
 
 // Google Places API 응답 모델 정의
 struct PlacesSearchResponse: Decodable {
-    let places: [Place]
+    let results: [Place]
+    let next_page_token: String?
 }
 
 struct Place: Decodable {
-    let displayName: DisplayName
-}
-
-struct DisplayName: Decodable {
-    let text: String
-    let languageCode: String
+    let name: String
 }
 
 public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtocol {
@@ -26,46 +22,54 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
             return []
         }
         
-        let url = "https://places.googleapis.com/v1/places:searchNearby"
-        let parameters: [String: Any] = [
-            "includedTypes": ["restaurant"],
-            "maxResultCount": 20,
-            "locationRestriction": [
-                "circle": [
-                    "center": [
-                        "latitude": latitude,
-                        "longitude": longitude
-                    ],
-                    "radius": maximumDistance
-                ]
+        let url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+        var allPlaceNames = [String]()
+        var nextPageToken: String? = nil
+        
+        repeat {
+            var parameters: [String: String] = [
+                "location": "\(latitude),\(longitude)",
+                "radius": "\(maximumDistance)",
+                "type": "restaurant",
+                "key": googlePlacesAPIKey
             ]
-        ]
-        
-        let headers: HTTPHeaders = [
-            "Content-Type": "application/json",
-            "X-Goog-Api-Key": googlePlacesAPIKey,
-            "X-Goog-FieldMask": "places.displayName"
-        ]
-        
-        return try await withCheckedThrowingContinuation { continuation in
-            AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
-                        .validate()  // 응답 상태 코드 검증
-                        .responseDecodable(of: PlacesSearchResponse.self) { response in
-                            switch response.result {
-                            case .success(let placesSearchResponse):
-                                // 성공적인 응답 처리
-                                var placeNames = [String]()
-                                for place in placesSearchResponse.places {
-                                    placeNames.append(place.displayName.text)
-                                }
-                                continuation.resume(returning: placeNames)
-                            case .failure(let error):
-                                // 실패한 경우 오류 처리
-                                print("Error: \(error)")
-                                continuation.resume(throwing: error)
-                            }
+            
+            if let token = nextPageToken {
+                parameters["pageToken"] = token
+            }
+            
+            // API 호출
+            let response: PlacesSearchResponse = try await withCheckedThrowingContinuation { continuation in
+                AF.request(url, method: .get, parameters: parameters)
+                    .validate()
+                    .responseDecodable(of: PlacesSearchResponse.self) { result in
+                        switch result.result {
+                        case .success(let placesSearchResponse):
+                            continuation.resume(returning: placesSearchResponse)
+                        case .failure(let error):
+                            print("Error: \(error)")
+                            continuation.resume(throwing: error)
                         }
-        }
+                    }
+            }
+            
+            // 응답 처리
+            for place in response.results {
+                allPlaceNames.append(place.name)
+            }
+            
+            // 다음 페이지 토큰 갱신
+            nextPageToken = response.next_page_token
+            
+            // nextPageToken이 바로 사용 불가능할 수 있으므로 약간의 지연 추가 (권장 사항)
+            if nextPageToken != nil {
+                try await Task.sleep(nanoseconds: 2_000_000_000) // 2초 대기
+            }
+            
+        } while nextPageToken != nil
+        
+        return allPlaceNames
+        
     }
 }
 
