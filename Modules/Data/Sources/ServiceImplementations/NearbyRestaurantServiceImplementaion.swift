@@ -29,7 +29,7 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
         let url = "https://places.googleapis.com/v1/places:searchNearby"
         let parameters: [String: Any] = [
             "includedTypes": ["restaurant"],
-            "maxResultCount": 1,
+            "maxResultCount": 20,
             "locationRestriction": [
                 "circle": [
                     "center": [
@@ -47,24 +47,25 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
             "X-Goog-FieldMask": "places.displayName"
         ]
         
-        // POST 요청 보내기
-        AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
-            .validate()  // 응답 상태 코드 검증
-            .responseDecodable(of: PlacesSearchResponse.self) { response in
-                switch response.result {
-                case .success(let placesSearchResponse):
-                    // 성공적인 응답 처리
-                    for place in placesSearchResponse.places {
-                        // displayName.text 값 출력
-                        print("Place displayName: \(place.displayName.text)")
-                    }
-                    
-                case .failure(let error):
-                    // 실패한 경우 오류 처리
-                    print("Error: \(error)")
-                }
-            }
-        return []
+        return try await withCheckedThrowingContinuation { continuation in
+            AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
+                        .validate()  // 응답 상태 코드 검증
+                        .responseDecodable(of: PlacesSearchResponse.self) { response in
+                            switch response.result {
+                            case .success(let placesSearchResponse):
+                                // 성공적인 응답 처리
+                                var placeNames = [String]()
+                                for place in placesSearchResponse.places {
+                                    placeNames.append(place.displayName.text)
+                                }
+                                continuation.resume(returning: placeNames)
+                            case .failure(let error):
+                                // 실패한 경우 오류 처리
+                                print("Error: \(error)")
+                                continuation.resume(throwing: error)
+                            }
+                        }
+        }
     }
 }
 
