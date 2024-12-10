@@ -293,6 +293,7 @@ public class RandomRecommendViewController: UIViewController {
             .sink { [weak self] allowedValue in
                 guard let self = self else { return }
                 distanceSlider.setValue(allowedValue, animated: false)
+                self.randomRecommendViewModel.setMaximumDistance(maximumDistance: maximumDistance)
             }
             .store(in: &cancellables)
         distanceSlider.valuePublisher

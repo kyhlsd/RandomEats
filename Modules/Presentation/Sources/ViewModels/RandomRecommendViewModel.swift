@@ -18,6 +18,7 @@ public class RandomRecommendViewModel {
     
     @Published public var currentAddress: String?
     @Published public var errorMessage: String?
+    private var maximumDistance = 300
     
     public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, nearbyRestaurantViewModel: NearbyRestaurantViewModel) {
         self.locationViewModel = locationViewModel
@@ -76,7 +77,11 @@ public class RandomRecommendViewModel {
     //주변 식당 정보 가져오기
     public func fetchNearbyRestaurants() {
         if let location = locationViewModel.location {
-            nearbyRestaurantViewModel.fetchNearbyRestaurant(for: location)
+            nearbyRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: maximumDistance)
         }
+    }
+    
+    public func setMaximumDistance(maximumDistance: Int) {
+        self.maximumDistance = maximumDistance
     }
 }
