@@ -5,10 +5,11 @@
 //  Created by 김영훈 on 12/10/24.
 //
 
+import Combine
 import Foundation
 
 public protocol NearbyRestaurantUseCaseProtocol {
-    func getNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) async throws -> [String]
+    func getNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error>
 }
 
 public class NearbyRestaurantUseCase: NearbyRestaurantUseCaseProtocol {
@@ -18,7 +19,7 @@ public class NearbyRestaurantUseCase: NearbyRestaurantUseCaseProtocol {
         self.nearbyRestaurantRepository = nearbyRestaurantRepository
     }
 
-    public func getNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) async throws -> [String] {
-        return try await nearbyRestaurantRepository.fetchNearbyRestaurant(latitude: latitude, longitude: longitude, maximumDistance: maximumDistance)
+    public func getNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
+        return nearbyRestaurantRepository.fetchNearbyRestaurant(latitude: latitude, longitude: longitude, maximumDistance: maximumDistance)
     }
 }

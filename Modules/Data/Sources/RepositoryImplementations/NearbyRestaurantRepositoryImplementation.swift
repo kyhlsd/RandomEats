@@ -4,7 +4,7 @@
 //
 //  Created by 김영훈 on 12/10/24.
 //
-
+import Combine
 import Domain
 
 public class NearbyRestaurantRepositoryImplementation: NearbyRestaurantRepositoryProtocol {
@@ -14,8 +14,8 @@ public class NearbyRestaurantRepositoryImplementation: NearbyRestaurantRepositor
         self.nearbyRestaurantService = nearbyRestaurantService
     }
     
-    public func fetchNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) async throws -> [String] {
-        return try await nearbyRestaurantService.fetchNearbyRestaurant(latitude: latitude, longitude: longitude, maximumDistance: maximumDistance)
+    public func fetchNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
+        return nearbyRestaurantService.fetchNearbyRestaurant(latitude: latitude, longitude: longitude, maximumDistance: maximumDistance)
     }
     
     

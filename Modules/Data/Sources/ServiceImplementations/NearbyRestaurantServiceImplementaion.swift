@@ -1,4 +1,5 @@
 import Alamofire
+import Combine
 import Foundation
 
 // Google Places API 응답 모델 정의
@@ -15,61 +16,72 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
     
     public init() {}
     
-    public func fetchNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) async throws -> [String] {
+    private let url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+    private var cancellables = Set<AnyCancellable>()
+    
+    public func fetchNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
         // API 키 가져오기
         guard let googlePlacesAPIKey = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_PLACES_API_KEY") as? String else {
             print("Failed to get API Key")
-            return []
+            return Fail(error: NSError(domain: "Missing API Key", code: 0, userInfo: nil))
+                .eraseToAnyPublisher()
         }
         
-        let url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-        var allPlaceNames = [String]()
-        var nextPageToken: String? = nil
+        let initialParameters: [String: String] = [
+            "location": "\(latitude),\(longitude)",
+            "radius": "\(maximumDistance)",
+            "type": "restaurant",
+            "key": googlePlacesAPIKey
+        ]
         
-        repeat {
-            var parameters: [String: String] = [
-                "location": "\(latitude),\(longitude)",
-                "radius": "\(maximumDistance)",
-                "type": "restaurant",
-                "key": googlePlacesAPIKey
-            ]
-            
-            if let token = nextPageToken {
-                parameters["pageToken"] = token
+        // 첫 페이지 요청 Publisher
+        return fetchPage(parameters: initialParameters)
+            .handleEvents(receiveOutput: { response in
+                    print("Next Page Token: \(response.next_page_token ?? "nil")")
+                })
+            .flatMap { response -> AnyPublisher<[String], Error> in
+                self.fetchAllPages(initialResults: response.results.map { $0.name }, nextPageToken: response.next_page_token, apiKey: googlePlacesAPIKey)
             }
-            
-            // API 호출
-            let response: PlacesSearchResponse = try await withCheckedThrowingContinuation { continuation in
-                AF.request(url, method: .get, parameters: parameters)
-                    .validate()
-                    .responseDecodable(of: PlacesSearchResponse.self) { result in
-                        switch result.result {
-                        case .success(let placesSearchResponse):
-                            continuation.resume(returning: placesSearchResponse)
-                        case .failure(let error):
-                            print("Error: \(error)")
-                            continuation.resume(throwing: error)
-                        }
+            .eraseToAnyPublisher()
+    }
+        
+    private func fetchPage(parameters: [String: String]) -> AnyPublisher<PlacesSearchResponse, Error> {
+        return Future<PlacesSearchResponse, Error> { promise in
+            AF.request(self.url, method: .get, parameters: parameters)
+                .validate()
+                .responseDecodable(of: PlacesSearchResponse.self) { result in
+                    switch result.result {
+                    case .success(let response):
+                        promise(.success(response))
+                    case .failure(let error):
+                        print("Error: \(error)")
+                        promise(.failure(error))
                     }
-            }
-            
-            // 응답 처리
-            for place in response.results {
-                allPlaceNames.append(place.name)
-            }
-            
-            // 다음 페이지 토큰 갱신
-            nextPageToken = response.next_page_token
-            
-            // nextPageToken이 바로 사용 불가능할 수 있으므로 약간의 지연 추가 (권장 사항)
-            if nextPageToken != nil {
-                try await Task.sleep(nanoseconds: 2_000_000_000) // 2초 대기
-            }
-            
-        } while nextPageToken != nil
+                }
+        }
+        .eraseToAnyPublisher()
+    }
         
-        return allPlaceNames
+    private func fetchAllPages(initialResults: [String], nextPageToken: String?, apiKey: String) -> AnyPublisher<[String], Error> {
+        guard let token = nextPageToken else {
+            return Just(initialResults)
+                .setFailureType(to: Error.self)
+                .eraseToAnyPublisher()
+        }
+        print("Func fetchAllPages")
+        let parameters: [String: String] = [
+            "pagetoken": token,
+            "key": apiKey
+        ]
         
+        return fetchPage(parameters: parameters)
+            .delay(for: .seconds(2), scheduler: DispatchQueue.global())
+            .flatMap { response -> AnyPublisher<[String], Error> in
+                let combinedResults = initialResults + response.results.map { $0.name }
+                print("Fetched \(response.results.count) results, Total: \(combinedResults.count)")
+                return self.fetchAllPages(initialResults: combinedResults, nextPageToken: response.next_page_token, apiKey: apiKey)
+            }
+            .eraseToAnyPublisher()
     }
 }
 
