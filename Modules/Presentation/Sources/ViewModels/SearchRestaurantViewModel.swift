@@ -54,7 +54,6 @@ public class SearchRestaurantViewModel {
                 }
             }, receiveValue: { [weak self] fetchedRestaurantDetail in
                 self?.restaurantDetail = fetchedRestaurantDetail
-                print(self?.restaurantDetail ?? "detail is nil")
             })
             .store(in: &cancellables)
     }

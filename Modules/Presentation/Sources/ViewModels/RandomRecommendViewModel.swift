@@ -18,7 +18,7 @@ public class RandomRecommendViewModel {
     
     @Published public var currentAddress: String?
     @Published public var errorMessage: String?
-    @Published public var restaurantInfo: PlaceDetail?
+    @Published public var restaurantDetail: PlaceDetail?
     private var maximumDistance = 300
     private var restaurantIDs = [String]()
     
@@ -71,13 +71,30 @@ public class RandomRecommendViewModel {
                 if let restaurantIDs = restaurantIDs {
                     self?.restaurantIDs = restaurantIDs
                 }
-                if let randomPickedId = self?.randomPickRestaurant() {
-                    self?.searchRestaurantViewModel.fetchRestaurantDetail(placeId: randomPickedId)
-                }
+                self?.getRandomRestaurantDetail()
             }
             .store(in: &cancellables)
         
         // 주위 식당 가져오기 에러 메세지 바인딩
+        searchRestaurantViewModel.$errorMessage
+            .sink { [weak self] errorMessage in
+                if let errorMessage = errorMessage {
+                    self?.errorMessage = errorMessage
+                }
+            }
+            .store(in: &cancellables)
+        
+        // 식당 정보 바인딩
+        searchRestaurantViewModel.$restaurantDetail
+            .sink { [weak self] restaurantDetail in
+                if let restaurantDetail = restaurantDetail {
+                    self?.restaurantDetail = restaurantDetail
+                    print(restaurantDetail)
+                }
+            }
+            .store(in: &cancellables)
+        
+        // 식당 정보 에러 메세지 바인딩
         searchRestaurantViewModel.$errorMessage
             .sink { [weak self] errorMessage in
                 if let errorMessage = errorMessage {
@@ -113,5 +130,11 @@ public class RandomRecommendViewModel {
             return nil
         }
         return randomRestaurant
+    }
+    
+    func getRandomRestaurantDetail() {
+        if let randomPickedId = randomPickRestaurant() {
+            searchRestaurantViewModel.fetchRestaurantDetail(placeId: randomPickedId)
+        }
     }
 }
