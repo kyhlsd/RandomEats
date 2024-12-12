@@ -19,6 +19,7 @@ public class RandomRecommendViewModel {
     @Published public var currentAddress: String?
     @Published public var errorMessage: String?
     @Published public var restaurantDetail: PlaceDetail?
+    
     private var maximumDistance = 300
     private var restaurantIDs = [String]()
     
@@ -125,16 +126,11 @@ public class RandomRecommendViewModel {
         self.maximumDistance = maximumDistance
     }
     
-    private func randomPickRestaurant() -> String? {
-        guard let randomRestaurant = restaurantIDs.randomElement() else {
-            return nil
-        }
-        return randomRestaurant
-    }
-    
     func getRandomRestaurantDetail() {
-        if let randomPickedId = randomPickRestaurant() {
-            searchRestaurantViewModel.fetchRestaurantDetail(placeId: randomPickedId)
+        guard let randomPickedId = restaurantIDs.randomElement() else {
+            print("Random Pick Id 오류")
+            return
         }
+        searchRestaurantViewModel.fetchRestaurantDetail(placeId: randomPickedId)
     }
 }
