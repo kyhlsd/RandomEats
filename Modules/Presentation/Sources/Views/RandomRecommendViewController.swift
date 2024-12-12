@@ -11,19 +11,8 @@ import CombineCocoa
 
 public class RandomRecommendViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
-    private let allowedValues: [Float] = [0.0, 0.25, 0.5, 0.75, 1.0]
-    private let allowedDistances: [Int] = [100, 200, 300, 400, 500]
-    private var maximumDistance = 300
     
-//    private var locationViewModel: LocationViewModel
-//    private var reverseGeocodingViewModel: ReverseGeocodingViewModel
     private var randomRecommendViewModel: RandomRecommendViewModel
-    
-//    public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel) {
-//        self.locationViewModel = locationViewModel
-//        self.reverseGeocodingViewModel = reverseGeocodingViewModel
-//        super.init(nibName: nil, bundle: nil)
-//    }
     
     public init(randomRecommendViewModel: RandomRecommendViewModel) {
         self.randomRecommendViewModel = randomRecommendViewModel
@@ -95,7 +84,7 @@ public class RandomRecommendViewController: UIViewController {
     }()
     private lazy var distanceSettingLabel = {
         let distanceSettingLabel = UILabel()
-        distanceSettingLabel.text = "최대 거리 설정 (\(maximumDistance)m)"
+        distanceSettingLabel.text = "최대 거리 설정 (\(randomRecommendViewModel.maximumDistance)m)"
         distanceSettingLabel.textColor = .black
         distanceSettingLabel.font = .systemFont(ofSize: 13, weight: .medium)
         distanceSettingLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -293,7 +282,7 @@ public class RandomRecommendViewController: UIViewController {
             .sink { [weak self] allowedValue in
                 guard let self = self else { return }
                 distanceSlider.setValue(allowedValue, animated: false)
-                self.randomRecommendViewModel.setMaximumDistance(maximumDistance: maximumDistance)
+                self.randomRecommendViewModel.maximumDistance = mapToDistance(value: allowedValue)
             }
             .store(in: &cancellables)
         distanceSlider.valuePublisher
@@ -303,20 +292,17 @@ public class RandomRecommendViewController: UIViewController {
             }
             .sink { [weak self] allowedValue in
                 guard let self = self else { return }
-                maximumDistance = mapToDistance(value: allowedValue)
-                distanceSettingLabel.text = "최대 거리 설정 (\(maximumDistance)m)"
+                let tempMaximumDistance = mapToDistance(value: allowedValue)
+                distanceSettingLabel.text = "최대 거리 설정 (\(tempMaximumDistance)m)"
             }
             .store(in: &cancellables)
         
-//        bindLocationViewModel()
         bindViewModel()
         
         // Button Actions
         currentLocationButton.addAction(UIAction { [weak self] _ in
             print("현재 위치로 설정하기")
-//            self?.locationViewModel.fetchCurrentLocation()
             self?.randomRecommendViewModel.fetchCurrentLocationAndAddress()
-//            self?.placeLabel.text = "현재 위치로 설정됨"
         }, for: .touchUpInside)
         
         searchButton.addAction(UIAction { _ in
@@ -467,23 +453,6 @@ public class RandomRecommendViewController: UIViewController {
         ])
     }
     
-//    private func bindLocationViewModel() {
-//        locationViewModel.$location
-//            .sink { location in
-//                if let location = location {
-//                    print(location)
-//                }
-//            }
-//            .store(in: &cancellables)
-//        locationViewModel.$errorMessage
-//            .sink { errorMessage in
-//                if let errorMessage = errorMessage {
-//                    print(errorMessage)
-//                }
-//            }
-//            .store(in: &cancellables)
-//    }
-    
     private func bindViewModel() {
         // 주소 업데이트 바인딩
         randomRecommendViewModel.$currentAddress
@@ -509,14 +478,14 @@ public class RandomRecommendViewController: UIViewController {
         }
     
     private func mapToAllowedValue(value: Float) -> Float {
-        guard let closestValue = allowedValues.min(by: { abs($0 - value) < abs($1 - value) }) else {
+        guard let closestValue = randomRecommendViewModel.allowedValues.min(by: { abs($0 - value) < abs($1 - value) }) else {
             return value
         }
         return closestValue
     }
     
     private func mapToDistance(value: Float) -> Int {
-        let index = allowedValues.firstIndex(of: value) ?? allowedValues.count / 2
-        return allowedDistances[index]
+        let index = randomRecommendViewModel.allowedValues.firstIndex(of: value) ?? randomRecommendViewModel.allowedValues.count / 2
+        return randomRecommendViewModel.allowedDistances[index]
     }
 }

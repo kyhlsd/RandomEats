@@ -20,7 +20,9 @@ public class RandomRecommendViewModel {
     @Published public var errorMessage: String?
     @Published public var restaurantDetail: PlaceDetail?
     
-    private var maximumDistance = 300
+    var maximumDistance = 300
+    let allowedValues: [Float] = [0.0, 0.25, 0.5, 0.75, 1.0]
+    let allowedDistances: [Int] = [100, 200, 300, 400, 500]
     private var restaurantIDs = [String]()
     
     public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, searchRestaurantViewModel: SearchRestaurantViewModel) {
@@ -120,10 +122,6 @@ public class RandomRecommendViewModel {
         if let location = locationViewModel.location {
             searchRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: maximumDistance)
         }
-    }
-    
-    public func setMaximumDistance(maximumDistance: Int) {
-        self.maximumDistance = maximumDistance
     }
     
     func getRandomRestaurantDetail() {
