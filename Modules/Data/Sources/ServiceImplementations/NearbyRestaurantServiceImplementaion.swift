@@ -8,6 +8,7 @@
 import Alamofire
 import Combine
 import Foundation
+import Domain
 
 public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtocol {
     
@@ -34,16 +35,16 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
         // 첫 페이지 요청 Publisher
         return fetchPage(parameters: initialParameters)
             .flatMap { response -> AnyPublisher<[String], Error> in
-                self.fetchAllPages(initialResults: response.results.map { $0.name }, nextPageToken: response.next_page_token, apiKey: googlePlacesAPIKey, longitude: longitude, latitude: latitude, maximumDistance: maximumDistance)
+                self.fetchAllPages(initialResults: response.results.map { $0.place_id }, nextPageToken: response.next_page_token, apiKey: googlePlacesAPIKey, longitude: longitude, latitude: latitude, maximumDistance: maximumDistance)
             }
             .eraseToAnyPublisher()
     }
         
-    private func fetchPage(parameters: [String: String]) -> AnyPublisher<PlacesSearchResponse, Error> {
-        return Future<PlacesSearchResponse, Error> { promise in
+    private func fetchPage(parameters: [String: String]) -> AnyPublisher<PlacesNearbySearchResponse, Error> {
+        return Future<PlacesNearbySearchResponse, Error> { promise in
             AF.request(self.url, method: .get, parameters: parameters)
                 .validate()
-                .responseDecodable(of: PlacesSearchResponse.self) { result in
+                .responseDecodable(of: PlacesNearbySearchResponse.self) { result in
                     switch result.result {
                     case .success(let response):
                         promise(.success(response))
@@ -76,7 +77,7 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
                 return self.fetchPage(parameters: parameters)
             }
             .flatMap { response -> AnyPublisher<[String], Error> in
-                let combinedResults = initialResults + response.results.map { $0.name }
+                let combinedResults = initialResults + response.results.map { $0.place_id }
                 return self.fetchAllPages(initialResults: combinedResults, nextPageToken: response.next_page_token, apiKey: apiKey, longitude: longitude, latitude: latitude, maximumDistance: maximumDistance)
             }
             .eraseToAnyPublisher()

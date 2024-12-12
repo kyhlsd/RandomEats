@@ -7,21 +7,21 @@
 
 import Foundation
 
-public struct Location {
-    let latitude: Double
-    let longitude: Double
+public struct Location: Decodable {
+    let lat: Double
+    let lng: Double
     
     public init(latitude: Double, longitude: Double) {
-        self.latitude = latitude
-        self.longitude = longitude
+        self.lat = latitude
+        self.lng = longitude
     }
     
     public func getLatitude() -> Double {
-        return latitude
+        return lat
     }
     
     public func getLongitude() -> Double {
-        return longitude
+        return lng
     }
 }
 

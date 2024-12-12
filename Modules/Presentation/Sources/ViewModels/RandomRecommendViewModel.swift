@@ -13,18 +13,19 @@ import Data
 public class RandomRecommendViewModel {
     private let locationViewModel: LocationViewModel
     private let reverseGeocodingViewModel: ReverseGeocodingViewModel
-    private let nearbyRestaurantViewModel: NearbyRestaurantViewModel
+    private let searchRestaurantViewModel: SearchRestaurantViewModel
     private var cancellables = Set<AnyCancellable>()
     
     @Published public var currentAddress: String?
     @Published public var errorMessage: String?
+    @Published public var restaurantInfo: PlaceDetail?
     private var maximumDistance = 300
-    private var restaurants = [String]()
+    private var restaurantIDs = [String]()
     
-    public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, nearbyRestaurantViewModel: NearbyRestaurantViewModel) {
+    public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, searchRestaurantViewModel: SearchRestaurantViewModel) {
         self.locationViewModel = locationViewModel
         self.reverseGeocodingViewModel = reverseGeocodingViewModel
-        self.nearbyRestaurantViewModel = nearbyRestaurantViewModel
+        self.searchRestaurantViewModel = searchRestaurantViewModel
         bindViewModels()
     }
     
@@ -65,18 +66,19 @@ public class RandomRecommendViewModel {
             .store(in: &cancellables)
         
         // 주위 식당 가져오기 결과 바인딩
-        
-        nearbyRestaurantViewModel.$restaurants
-            .sink { [weak self] restaurants in
-                if let restaurants = restaurants {
-                    self?.restaurants = restaurants
-                    print("viewModel's restaurants: \(restaurants)")
+        searchRestaurantViewModel.$restaurants
+            .sink { [weak self] restaurantIDs in
+                if let restaurantIDs = restaurantIDs {
+                    self?.restaurantIDs = restaurantIDs
+                }
+                if let randomPickedId = self?.randomPickRestaurant() {
+                    self?.searchRestaurantViewModel.fetchRestaurantDetail(placeId: randomPickedId)
                 }
             }
             .store(in: &cancellables)
         
         // 주위 식당 가져오기 에러 메세지 바인딩
-        nearbyRestaurantViewModel.$errorMessage
+        searchRestaurantViewModel.$errorMessage
             .sink { [weak self] errorMessage in
                 if let errorMessage = errorMessage {
                     self?.errorMessage = errorMessage
@@ -98,11 +100,18 @@ public class RandomRecommendViewModel {
     //주변 식당 정보 가져오기
     public func fetchNearbyRestaurants() {
         if let location = locationViewModel.location {
-            nearbyRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: maximumDistance)
+            searchRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: maximumDistance)
         }
     }
     
     public func setMaximumDistance(maximumDistance: Int) {
         self.maximumDistance = maximumDistance
+    }
+    
+    private func randomPickRestaurant() -> String? {
+        guard let randomRestaurant = restaurantIDs.randomElement() else {
+            return nil
+        }
+        return randomRestaurant
     }
 }
