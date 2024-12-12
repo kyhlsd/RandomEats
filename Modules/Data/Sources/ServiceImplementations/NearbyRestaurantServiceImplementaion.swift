@@ -36,11 +36,8 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
         
         // 첫 페이지 요청 Publisher
         return fetchPage(parameters: initialParameters)
-            .handleEvents(receiveOutput: { response in
-                    print("Next Page Token: \(response.next_page_token ?? "nil")")
-                })
             .flatMap { response -> AnyPublisher<[String], Error> in
-                self.fetchAllPages(initialResults: response.results.map { $0.name }, nextPageToken: response.next_page_token, apiKey: googlePlacesAPIKey)
+                self.fetchAllPages(initialResults: response.results.map { $0.name }, nextPageToken: response.next_page_token, apiKey: googlePlacesAPIKey, longitude: longitude, latitude: latitude, maximumDistance: maximumDistance)
             }
             .eraseToAnyPublisher()
     }
@@ -52,6 +49,7 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
                 .responseDecodable(of: PlacesSearchResponse.self) { result in
                     switch result.result {
                     case .success(let response):
+                        print("response: \(response)")
                         promise(.success(response))
                     case .failure(let error):
                         print("Error: \(error)")
@@ -62,14 +60,16 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
         .eraseToAnyPublisher()
     }
         
-    private func fetchAllPages(initialResults: [String], nextPageToken: String?, apiKey: String) -> AnyPublisher<[String], Error> {
+    private func fetchAllPages(initialResults: [String], nextPageToken: String?, apiKey: String, longitude: Double, latitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
         guard let token = nextPageToken else {
             return Just(initialResults)
                 .setFailureType(to: Error.self)
                 .eraseToAnyPublisher()
         }
-        print("Func fetchAllPages")
+        
         let parameters: [String: String] = [
+            "location": "\(latitude),\(longitude)",
+            "radius": "\(maximumDistance)",
             "pagetoken": token,
             "key": apiKey
         ]
@@ -79,7 +79,7 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
             .flatMap { response -> AnyPublisher<[String], Error> in
                 let combinedResults = initialResults + response.results.map { $0.name }
                 print("Fetched \(response.results.count) results, Total: \(combinedResults.count)")
-                return self.fetchAllPages(initialResults: combinedResults, nextPageToken: response.next_page_token, apiKey: apiKey)
+                return self.fetchAllPages(initialResults: combinedResults, nextPageToken: response.next_page_token, apiKey: apiKey, longitude: longitude, latitude: latitude, maximumDistance: maximumDistance)
             }
             .eraseToAnyPublisher()
     }
