@@ -165,7 +165,7 @@ public class RandomRecommendViewController: UIViewController {
     }()
     private lazy var restaurantNameLabel = {
         let restaurantNameLabel = UILabel()
-        restaurantNameLabel.text = "스톤504 / 양식"
+        restaurantNameLabel.text = "스톤504"
         restaurantNameLabel.textColor = .black
         restaurantNameLabel.font = .systemFont(ofSize: 24, weight: .bold)
         restaurantNameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -475,7 +475,19 @@ public class RandomRecommendViewController: UIViewController {
                 }
             }
             .store(in: &cancellables)
-        }
+        
+        // Todo: 이미지, 평점 별표, 거리, url update
+        randomRecommendViewModel.$restaurantDetail
+            .sink { [weak self] restaurantDetail in
+                if let restaurantDetail = restaurantDetail {
+                    DispatchQueue.main.async {
+                        self?.restaurantNameLabel.text = restaurantDetail.name
+                        self?.ratingLabel.text = "평점 : \(restaurantDetail.rating ?? 0.0) (\(restaurantDetail.user_ratings_total))"
+                    }
+                }
+            }
+            .store(in: &cancellables)
+    }
     
     private func mapToAllowedValue(value: Float) -> Float {
         guard let closestValue = randomRecommendViewModel.allowedValues.min(by: { abs($0 - value) < abs($1 - value) }) else {
