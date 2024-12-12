@@ -34,7 +34,6 @@ public class NearbyRestaurantViewModel {
                 }
             }, receiveValue: { [weak self] fetchedRestaurants in
                 self?.restaurants = fetchedRestaurants
-                print("FetchedRestaurants: \(fetchedRestaurants)")
             })
             .store(in: &cancellables)
     }

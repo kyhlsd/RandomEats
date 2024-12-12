@@ -19,6 +19,7 @@ public class RandomRecommendViewModel {
     @Published public var currentAddress: String?
     @Published public var errorMessage: String?
     private var maximumDistance = 300
+    private var restaurants = [String]()
     
     public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, nearbyRestaurantViewModel: NearbyRestaurantViewModel) {
         self.locationViewModel = locationViewModel
@@ -36,17 +37,8 @@ public class RandomRecommendViewModel {
             }
             .store(in: &cancellables)
         
-        // 위치 에러 메시지 바인딩
+        // 위치 에러 메세지 바인딩
         locationViewModel.$errorMessage
-            .sink { [weak self] errorMessage in
-                if let errorMessage = errorMessage {
-                    self?.errorMessage = errorMessage
-                }
-            }
-            .store(in: &cancellables)
-        
-        // 주소 변환 에러 메시지 바인딩
-        reverseGeocodingViewModel.$errorMessage
             .sink { [weak self] errorMessage in
                 if let errorMessage = errorMessage {
                     self?.errorMessage = errorMessage
@@ -59,6 +51,35 @@ public class RandomRecommendViewModel {
             .sink { [weak self] address in
                 if let address = address {
                     self?.currentAddress = address
+                }
+            }
+            .store(in: &cancellables)
+        
+        // 주소 변환 에러 메세지 바인딩
+        reverseGeocodingViewModel.$errorMessage
+            .sink { [weak self] errorMessage in
+                if let errorMessage = errorMessage {
+                    self?.errorMessage = errorMessage
+                }
+            }
+            .store(in: &cancellables)
+        
+        // 주위 식당 가져오기 결과 바인딩
+        
+        nearbyRestaurantViewModel.$restaurants
+            .sink { [weak self] restaurants in
+                if let restaurants = restaurants {
+                    self?.restaurants = restaurants
+                    print("viewModel's restaurants: \(restaurants)")
+                }
+            }
+            .store(in: &cancellables)
+        
+        // 주위 식당 가져오기 에러 메세지 바인딩
+        nearbyRestaurantViewModel.$errorMessage
+            .sink { [weak self] errorMessage in
+                if let errorMessage = errorMessage {
+                    self?.errorMessage = errorMessage
                 }
             }
             .store(in: &cancellables)
