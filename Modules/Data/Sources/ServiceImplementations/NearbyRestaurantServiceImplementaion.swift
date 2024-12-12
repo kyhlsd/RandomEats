@@ -49,7 +49,6 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
                 .responseDecodable(of: PlacesSearchResponse.self) { result in
                     switch result.result {
                     case .success(let response):
-                        print("response: \(response)")
                         promise(.success(response))
                     case .failure(let error):
                         print("Error: \(error)")
@@ -73,15 +72,20 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
             "pagetoken": token,
             "key": apiKey
         ]
-        
-        return fetchPage(parameters: parameters)
-            .delay(for: .seconds(2), scheduler: DispatchQueue.global())
+        return Just(())
+            .delay(for: .seconds(2), scheduler: DispatchQueue.global()) // Delay 먼저 실행
+            .flatMap { _ in
+                print("end delay, start fetchPage")
+                return self.fetchPage(parameters: parameters)
+            }
             .flatMap { response -> AnyPublisher<[String], Error> in
+                print("end fetchPage")
                 let combinedResults = initialResults + response.results.map { $0.name }
                 print("Fetched \(response.results.count) results, Total: \(combinedResults.count)")
                 return self.fetchAllPages(initialResults: combinedResults, nextPageToken: response.next_page_token, apiKey: apiKey, longitude: longitude, latitude: latitude, maximumDistance: maximumDistance)
             }
             .eraseToAnyPublisher()
     }
+    
 }
 
