@@ -1,16 +1,13 @@
+//
+//  NearbyRestaurantServiceImplementaion.swift
+//  Data
+//
+//  Created by 김영훈 on 12/10/24.
+//
+
 import Alamofire
 import Combine
 import Foundation
-
-// Google Places API 응답 모델 정의
-struct PlacesSearchResponse: Decodable {
-    let results: [Place]
-    let next_page_token: String?
-}
-
-struct Place: Decodable {
-    let name: String
-}
 
 public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtocol {
     
@@ -73,15 +70,13 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
             "key": apiKey
         ]
         return Just(())
-            .delay(for: .seconds(2), scheduler: DispatchQueue.global()) // Delay 먼저 실행
+            // Google Places API 2초 딜레이
+            .delay(for: .seconds(2), scheduler: DispatchQueue.global())
             .flatMap { _ in
-                print("end delay, start fetchPage")
                 return self.fetchPage(parameters: parameters)
             }
             .flatMap { response -> AnyPublisher<[String], Error> in
-                print("end fetchPage")
                 let combinedResults = initialResults + response.results.map { $0.name }
-                print("Fetched \(response.results.count) results, Total: \(combinedResults.count)")
                 return self.fetchAllPages(initialResults: combinedResults, nextPageToken: response.next_page_token, apiKey: apiKey, longitude: longitude, latitude: latitude, maximumDistance: maximumDistance)
             }
             .eraseToAnyPublisher()
