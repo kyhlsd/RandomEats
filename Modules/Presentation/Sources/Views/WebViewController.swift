@@ -9,6 +9,17 @@ import UIKit
 import WebKit
 
 class WebViewController: UIViewController {
+    private let urlString: String
+    
+    init(urlString: String) {
+        self.urlString = urlString
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     private lazy var closeButton = {
         let closeButton = UIButton()
         closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
@@ -65,7 +76,7 @@ class WebViewController: UIViewController {
     }
     
     private func loadURL() {
-        guard let url = URL(string: "https://www.google.com/maps/place/%EC%8A%A4%ED%86%A4504/data=!4m7!3m6!1s0x357ca14590a087c1:0xcc6552412013d6d7!4b1!8m2!3d37.4945959!4d126.9577544!16s%2Fg%2F11hzz774k2?entry=ttu&g_ep=EgoyMDI0MTIwMS4xIKXMDSoASAFQAw%3D%3D") else { return }
+        guard let url = URL(string: urlString) else { return }
         webView.load(URLRequest(url: url))
     }
 }

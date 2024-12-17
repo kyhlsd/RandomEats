@@ -316,8 +316,10 @@ public class RandomRecommendViewController: UIViewController {
         }, for: .touchUpInside)
         
         restaurantInfoButton.addAction(UIAction { [weak self] _ in
-            let webViewController = WebViewController()
+            guard let placeDetail = self?.randomRecommendViewModel.restaurantDetail else { return }
+            let webViewController = WebViewController(urlString: placeDetail.url)
             self?.present(webViewController, animated: true, completion: nil)
+            
         }, for: .touchUpInside)
         
         recommendAgainButton.addAction(UIAction { _ in
