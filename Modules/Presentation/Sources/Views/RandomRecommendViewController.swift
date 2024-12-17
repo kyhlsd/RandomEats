@@ -492,6 +492,7 @@ public class RandomRecommendViewController: UIViewController {
             .store(in: &cancellables)
     }
     
+    // Slider 특정 단위값에서만 세팅되도록
     private func mapToAllowedValue(value: Float) -> Float {
         guard let closestValue = randomRecommendViewModel.allowedValues.min(by: { abs($0 - value) < abs($1 - value) }) else {
             return value
@@ -499,11 +500,13 @@ public class RandomRecommendViewController: UIViewController {
         return closestValue
     }
     
+    // Slider 값 거리로 변환
     private func mapToDistance(value: Float) -> Int {
         let index = randomRecommendViewModel.allowedValues.firstIndex(of: value) ?? randomRecommendViewModel.allowedValues.count / 2
         return randomRecommendViewModel.allowedDistances[index]
     }
     
+    // 식당 평점 별 UI 업데이트
     private func updateRatingStars(rating: Double) {
         let starStates: [String] = {
             switch rating {
@@ -526,5 +529,11 @@ public class RandomRecommendViewController: UIViewController {
                 star.image = UIImage(systemName: state)
             }
         }
+    }
+    
+    // Todo: Direction API 연결 후
+    // 현재 위치와 식당 거리 업데이트
+    private func updateDistanceLabel() {
+        
     }
 }

@@ -10,6 +10,7 @@ import Foundation
 
 public protocol RestaurantDetailUseCaseProtocol {
     func getRestaurantDetail(placeId: String) -> AnyPublisher<PlaceDetail, Error>
+    func getPhotoURL(photoReference: String) -> AnyPublisher<URL, Error>
 }
 
 public class RestaurantDetailUseCase: RestaurantDetailUseCaseProtocol {
@@ -21,5 +22,9 @@ public class RestaurantDetailUseCase: RestaurantDetailUseCaseProtocol {
 
     public func getRestaurantDetail(placeId: String) -> AnyPublisher<PlaceDetail, Error> {
         return restaurantDetailRepository.fetchRestaurantDetail(placeId: placeId)
+    }
+    
+    public func getPhotoURL(photoReference: String) -> AnyPublisher<URL, Error> {
+        return restaurantDetailRepository.fetchPhotoURL(photoReference: photoReference)
     }
 }

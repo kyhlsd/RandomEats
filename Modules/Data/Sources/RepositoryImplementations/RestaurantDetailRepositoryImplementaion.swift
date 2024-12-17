@@ -7,8 +7,10 @@
 
 import Combine
 import Domain
+import Foundation
 
 public class RestaurantDetailRepositoryImplementation: RestaurantDetailRepositoryProtocol {
+    
     private let restaurantDetailService: RestaurantDetailServiceProtocol
     
     public init(restaurantDetailService: RestaurantDetailServiceProtocol) {
@@ -19,5 +21,7 @@ public class RestaurantDetailRepositoryImplementation: RestaurantDetailRepositor
         return restaurantDetailService.fetchRestaurantDetail(placeId: placeId)
     }
     
-    
+    public func fetchPhotoURL(photoReference: String) -> AnyPublisher<URL, any Error> {
+        return restaurantDetailService.fetchPhotoURL(photoReference: photoReference)
+    }
 }

@@ -19,6 +19,7 @@ public class RandomRecommendViewModel {
     @Published public var currentAddress: String?
     @Published public var errorMessage: String?
     @Published public var restaurantDetail: PlaceDetail?
+    @Published public var photoURL: URL?
     
     var maximumDistance = 300
     let allowedValues: [Float] = [0.0, 0.25, 0.5, 0.75, 1.0]
@@ -78,26 +79,25 @@ public class RandomRecommendViewModel {
             }
             .store(in: &cancellables)
         
-        // 주위 식당 가져오기 에러 메세지 바인딩
-        searchRestaurantViewModel.$errorMessage
-            .sink { [weak self] errorMessage in
-                if let errorMessage = errorMessage {
-                    self?.errorMessage = errorMessage
-                }
-            }
-            .store(in: &cancellables)
-        
         // 식당 정보 바인딩
         searchRestaurantViewModel.$restaurantDetail
             .sink { [weak self] restaurantDetail in
                 if let restaurantDetail = restaurantDetail {
                     self?.restaurantDetail = restaurantDetail
-                    print(restaurantDetail)
                 }
             }
             .store(in: &cancellables)
         
-        // 식당 정보 에러 메세지 바인딩
+        searchRestaurantViewModel.$photoURL
+            .sink { [weak self] photoURL in
+                if let photoURL = photoURL {
+                    self?.photoURL = photoURL
+                    print("viewModel's photoURL = \(photoURL)")
+                }
+            }
+            .store(in: &cancellables)
+        
+        // 주위 식당, 식당 정보, 사진 URL 가져오기 에러 메세지 바인딩
         searchRestaurantViewModel.$errorMessage
             .sink { [weak self] errorMessage in
                 if let errorMessage = errorMessage {

@@ -10,4 +10,5 @@ import Foundation
 
 public protocol RestaurantDetailRepositoryProtocol {
     func fetchRestaurantDetail(placeId: String) -> AnyPublisher<PlaceDetail, Error>
+    func fetchPhotoURL(photoReference: String) -> AnyPublisher<URL, Error>
 }

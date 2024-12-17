@@ -17,6 +17,7 @@ public class SearchRestaurantViewModel {
     @Published var restaurants: [String]?
     @Published var errorMessage: String?
     @Published var restaurantDetail: PlaceDetail?
+    @Published var photoURL: URL?
     
     // UseCase 주입
     public init(nearbyRestaurantUseCase: NearbyRestaurantUseCaseProtocol, restaurantDetailUseCase: RestaurantDetailUseCaseProtocol) {
@@ -54,6 +55,29 @@ public class SearchRestaurantViewModel {
                 }
             }, receiveValue: { [weak self] fetchedRestaurantDetail in
                 self?.restaurantDetail = fetchedRestaurantDetail
+                self?.fetchPhotoURL()
+            })
+            .store(in: &cancellables)
+    }
+    
+    // 식당 이미지 레퍼렌스로 이미지 불러오는 함수
+    func fetchPhotoURL() {
+        guard let photoReference = restaurantDetail?.photos?.first?.photo_reference else {
+            print("photo reference is nil")
+            return
+        }
+        
+        restaurantDetailUseCase.getPhotoURL(photoReference: photoReference)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    self?.errorMessage = "Failed to fetch photo URL: \(error)"
+                case .finished:
+                    break
+                }
+            }, receiveValue: { [weak self] fetchedPhotoURL in
+                self?.photoURL = fetchedPhotoURL
             })
             .store(in: &cancellables)
     }
