@@ -376,7 +376,6 @@ public class RandomRecommendViewController: UIViewController {
             }
             .store(in: &cancellables)
         
-        // Todo : 이미지 url 없을 경우 기본 이미지 표기
         // Photo URL 바인딩
         randomRecommendViewModel.$photoURL
             .sink { [weak self] photoURL in
@@ -386,6 +385,7 @@ public class RandomRecommendViewController: UIViewController {
                 let paddedImage = self?.addPaddingToImage(image: resizedImage, paddingSize: 100, paddingColor: .white)
                 
                 if let photoURL = photoURL {
+                    // 이미지 정보가 있는 식당일 경우
                     DispatchQueue.main.async {
                         self?.restaurantImageView.kf.setImage(with: photoURL, placeholder: paddedImage, options: [
                             .cacheOriginalImage,
