@@ -310,9 +310,15 @@ public class RandomRecommendViewController: UIViewController {
         
         bindViewModel()
         
+        setButtonActions()
+        
+        setupUI()
+    }
+    
+    //MARK: 버튼 액션 함수
+    private func setButtonActions() {
         // Button Actions
         currentLocationButton.addAction(UIAction { [weak self] _ in
-            print("현재 위치로 설정하기")
             self?.randomRecommendViewModel.fetchCurrentLocationAndAddress()
         }, for: .touchUpInside)
         
@@ -333,15 +339,13 @@ public class RandomRecommendViewController: UIViewController {
             
         }, for: .touchUpInside)
         
-        recommendAgainButton.addAction(UIAction { _ in
-            print("다시하기")
+        recommendAgainButton.addAction(UIAction { [weak self] _ in
+            self?.randomRecommendViewModel.getRandomRestaurantDetail()
         }, for: .touchUpInside)
         
         directionsButton.addAction(UIAction { _ in
             print("길찾기")
         }, for: .touchUpInside)
-        
-        setupUI()
     }
     
     //MARK: 뷰모델 바인딩 함수
