@@ -10,7 +10,8 @@ import PackageDescription
         // productTypes: ["Alamofire": .framework,] 
         productTypes: ["CombineCocoa": .framework,
                        "GooglePlaces": .framework,
-                       "Alamofire": .framework]
+                       "Alamofire": .framework,
+                      "Kingfisher": .framework]
     )
 #endif
 
@@ -21,7 +22,8 @@ let package = Package(
         // .package(url: "https://github.com/Alamofire/Alamofire", from: "5.0.0"),
         .package(url: "https://github.com/CombineCommunity/CombineCocoa.git", from: "0.4.1"),
         .package(url: "https://github.com/googlemaps/ios-places-sdk.git", from: "9.2.0"),
-        .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.10.2")
+        .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.10.2"),
+        .package(url: "https://github.com/onevcat/Kingfisher.git", from: "8.1.2")
         // You can read more about dependencies here: https://docs.tuist.io/documentation/tuist/dependencies
     ]
 )

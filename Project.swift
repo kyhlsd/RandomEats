@@ -33,7 +33,6 @@ let project = Project(
                 .target(name: "Domain"),
                 .target(name: "Data"),
                 .target(name: "Shared"),
-                .external(name: "CombineCocoa"),
             ]
         ),
         .target(
@@ -58,7 +57,8 @@ let project = Project(
                 .target(name: "Domain"),
                 .target(name: "Data"),
                 .target(name: "Shared"),
-                .external(name: "CombineCocoa")
+                .external(name: "CombineCocoa"),
+                .external(name: "Kingfisher")
             ]
         ),
         .target(

@@ -8,6 +8,7 @@
 import UIKit
 import Combine
 import CombineCocoa
+import Kingfisher
 
 public class RandomRecommendViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
@@ -333,6 +334,65 @@ public class RandomRecommendViewController: UIViewController {
         setupUI()
     }
     
+    //MARK: 뷰모델 바인딩 함수
+    private func bindViewModel() {
+        // 주소 업데이트 바인딩
+        randomRecommendViewModel.$currentAddress
+            .sink { [weak self] address in
+                if let address = address {
+                    print("Current Address: \(address)")
+                    
+                    DispatchQueue.main.async {
+                        self?.placeLabel.text = address
+                    }
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Todo: 거리 update
+        randomRecommendViewModel.$restaurantDetail
+            .sink { [weak self] restaurantDetail in
+                if let restaurantDetail = restaurantDetail {
+                    DispatchQueue.main.async {
+                        self?.restaurantNameLabel.text = restaurantDetail.name
+                        self?.ratingLabel.text = "평점 : \(restaurantDetail.rating ?? 0.0) (\(restaurantDetail.user_ratings_total))"
+                        self?.updateRatingStars(rating: restaurantDetail.rating ?? 0.0)
+                    }
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Todo : 이미지 url 없을 경우 기본 이미지 표기
+        // Photo URL 바인딩
+        randomRecommendViewModel.$photoURL
+            .sink { [weak self] photoURL in
+                let photoImage = UIImage(systemName: "photo")?
+                    .withTintColor(.gray, renderingMode: .alwaysOriginal)
+                let resizedImage = self?.resizeImage(image: photoImage, to: CGSize(width: 100, height: 100))
+                let paddedImage = self?.addPaddingToImage(image: resizedImage, paddingSize: 100, paddingColor: .white)
+                    
+                if let photoURL = photoURL {
+                    DispatchQueue.main.async {
+                        self?.restaurantImageView.kf.setImage(with: photoURL, placeholder: paddedImage, options: [
+                            .cacheOriginalImage,
+                        ])
+                    }
+                }
+            }
+            .store(in: &cancellables)
+        
+        // 에러 메시지 바인딩
+        randomRecommendViewModel.$errorMessage
+            .sink { errorMessage in
+                if let errorMessage = errorMessage {
+                    print("Error: \(errorMessage)")
+                }
+            }
+            .store(in: &cancellables)
+        
+    }
+    
+    //MARK: UI Setup 함수
     private func setupUI() {
         view.addSubview(titleImageView)
         view.addSubview(titleLabel)
@@ -455,57 +515,7 @@ public class RandomRecommendViewController: UIViewController {
         ])
     }
     
-    private func bindViewModel() {
-        // 주소 업데이트 바인딩
-        randomRecommendViewModel.$currentAddress
-            .sink { [weak self] address in
-                if let address = address {
-                    print("Current Address: \(address)")
-                    
-                    DispatchQueue.main.async {
-                        self?.placeLabel.text = address
-                    }
-                }
-            }
-            .store(in: &cancellables)
-        
-        // 에러 메시지 바인딩
-        randomRecommendViewModel.$errorMessage
-            .sink { errorMessage in
-                if let errorMessage = errorMessage {
-                    print("Error: \(errorMessage)")
-                }
-            }
-            .store(in: &cancellables)
-        
-        // Todo: 이미지, 거리 update
-        randomRecommendViewModel.$restaurantDetail
-            .sink { [weak self] restaurantDetail in
-                if let restaurantDetail = restaurantDetail {
-                    DispatchQueue.main.async {
-                        self?.restaurantNameLabel.text = restaurantDetail.name
-                        self?.ratingLabel.text = "평점 : \(restaurantDetail.rating ?? 0.0) (\(restaurantDetail.user_ratings_total))"
-                        self?.updateRatingStars(rating: restaurantDetail.rating ?? 0.0)
-                    }
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    // Slider 특정 단위값에서만 세팅되도록
-    private func mapToAllowedValue(value: Float) -> Float {
-        guard let closestValue = randomRecommendViewModel.allowedValues.min(by: { abs($0 - value) < abs($1 - value) }) else {
-            return value
-        }
-        return closestValue
-    }
-    
-    // Slider 값 거리로 변환
-    private func mapToDistance(value: Float) -> Int {
-        let index = randomRecommendViewModel.allowedValues.firstIndex(of: value) ?? randomRecommendViewModel.allowedValues.count / 2
-        return randomRecommendViewModel.allowedDistances[index]
-    }
-    
+    //MARK: UI 업데이트 함수
     // 식당 평점 별 UI 업데이트
     private func updateRatingStars(rating: Double) {
         let starStates: [String] = {
@@ -535,5 +545,53 @@ public class RandomRecommendViewController: UIViewController {
     // 현재 위치와 식당 거리 업데이트
     private func updateDistanceLabel() {
         
+    }
+    
+    //MARK: UI 보조 함수
+    // Slider 특정 단위값에서만 세팅되도록 하는 함수
+    private func mapToAllowedValue(value: Float) -> Float {
+        guard let closestValue = randomRecommendViewModel.allowedValues.min(by: { abs($0 - value) < abs($1 - value) }) else {
+            return value
+        }
+        return closestValue
+    }
+    
+    // Slider 값 거리로 변환 함수
+    private func mapToDistance(value: Float) -> Int {
+        let index = randomRecommendViewModel.allowedValues.firstIndex(of: value) ?? randomRecommendViewModel.allowedValues.count / 2
+        return randomRecommendViewModel.allowedDistances[index]
+    }
+    
+    // 이미지 크기 조정 함수
+    private func resizeImage(image: UIImage?, to size: CGSize) -> UIImage? {
+        guard let image = image else { return nil }
+        
+        UIGraphicsBeginImageContextWithOptions(size, false, image.scale)
+        image.draw(in: CGRect(origin: .zero, size: size))
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return resizedImage
+    }
+
+    // 이미지에 여백 추가 함수
+    private func addPaddingToImage(image: UIImage?, paddingSize: CGFloat, paddingColor: UIColor) -> UIImage? {
+        guard let image = image else { return nil }
+        
+        let newSize = CGSize(width: image.size.width + paddingSize * 2, height: image.size.height + paddingSize * 2)
+        UIGraphicsBeginImageContextWithOptions(newSize, false, image.scale)
+        
+        // 배경색을 지정
+        paddingColor.setFill()
+        UIBezierPath(rect: CGRect(origin: .zero, size: newSize)).fill()
+        
+        // 이미지를 지정된 위치에 그리기
+        let imageRect = CGRect(x: paddingSize, y: paddingSize, width: image.size.width, height: image.size.height)
+        image.draw(in: imageRect)
+        
+        let paddedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return paddedImage
     }
 }

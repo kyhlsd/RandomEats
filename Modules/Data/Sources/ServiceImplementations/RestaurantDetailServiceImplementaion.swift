@@ -59,7 +59,7 @@ public class RestaurantDetailServiceImplementaion: RestaurantDetailServiceProtoc
         
         var components = URLComponents(string: "https://maps.googleapis.com/maps/api/place/photo")
         components?.queryItems = [
-            URLQueryItem(name: "maxwidth", value: "400"),
+            URLQueryItem(name: "maxwidth", value: "1280"),
             URLQueryItem(name: "photo_reference", value: photoReference),
             URLQueryItem(name: "key", value: googlePlacesAPIKey),
         ]
