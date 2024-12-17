@@ -62,23 +62,23 @@ public class SearchRestaurantViewModel {
     
     // 식당 이미지 레퍼렌스로 이미지 불러오는 함수
     func fetchPhotoURL() {
-        guard let photoReference = restaurantDetail?.photos?.first?.photo_reference else {
-            print("photo reference is nil")
-            return
+        if let photoReference = restaurantDetail?.photos?.first?.photo_reference {
+            restaurantDetailUseCase.getPhotoURL(photoReference: photoReference)
+                .receive(on: DispatchQueue.main)
+                .sink(receiveCompletion: { [weak self] completion in
+                    switch completion {
+                    case .failure(let error):
+                        self?.errorMessage = "Failed to fetch photo URL: \(error)"
+                    case .finished:
+                        break
+                    }
+                }, receiveValue: { [weak self] fetchedPhotoURL in
+                    self?.photoURL = fetchedPhotoURL
+                })
+                .store(in: &cancellables)
+        } else {
+            photoURL = nil
         }
-        
-        restaurantDetailUseCase.getPhotoURL(photoReference: photoReference)
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { [weak self] completion in
-                switch completion {
-                case .failure(let error):
-                    self?.errorMessage = "Failed to fetch photo URL: \(error)"
-                case .finished:
-                    break
-                }
-            }, receiveValue: { [weak self] fetchedPhotoURL in
-                self?.photoURL = fetchedPhotoURL
-            })
-            .store(in: &cancellables)
+        return
     }
 }
