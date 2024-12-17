@@ -478,13 +478,14 @@ public class RandomRecommendViewController: UIViewController {
             }
             .store(in: &cancellables)
         
-        // Todo: 이미지, 평점 별표, 거리, url update
+        // Todo: 이미지, 거리 update
         randomRecommendViewModel.$restaurantDetail
             .sink { [weak self] restaurantDetail in
                 if let restaurantDetail = restaurantDetail {
                     DispatchQueue.main.async {
                         self?.restaurantNameLabel.text = restaurantDetail.name
                         self?.ratingLabel.text = "평점 : \(restaurantDetail.rating ?? 0.0) (\(restaurantDetail.user_ratings_total))"
+                        self?.updateRatingStars(rating: restaurantDetail.rating ?? 0.0)
                     }
                 }
             }
@@ -501,5 +502,29 @@ public class RandomRecommendViewController: UIViewController {
     private func mapToDistance(value: Float) -> Int {
         let index = randomRecommendViewModel.allowedValues.firstIndex(of: value) ?? randomRecommendViewModel.allowedValues.count / 2
         return randomRecommendViewModel.allowedDistances[index]
+    }
+    
+    private func updateRatingStars(rating: Double) {
+        let starStates: [String] = {
+            switch rating {
+            case ..<0.25: return ["star", "star", "star", "star", "star"]
+            case 0.25..<0.75: return ["star.leadinghalf.filled", "star", "star", "star", "star"]
+            case 0.75..<1.25: return ["star.fill", "star", "star", "star", "star"]
+            case 1.25..<1.75: return ["star.fill", "star.leadinghalf.filled", "star", "star", "star"]
+            case 1.75..<2.25: return ["star.fill", "star.fill", "star", "star", "star"]
+            case 2.25..<2.75: return ["star.fill", "star.fill", "star.leadinghalf.filled", "star", "star"]
+            case 2.75..<3.25: return ["star.fill", "star.fill", "star.fill", "star", "star"]
+            case 3.25..<3.75: return ["star.fill", "star.fill", "star.fill", "star.leadinghalf.filled", "star"]
+            case 3.75..<4.25: return ["star.fill", "star.fill", "star.fill", "star.fill", "star"]
+            case 4.25..<4.75: return ["star.fill", "star.fill", "star.fill", "star.fill", "star.leadinghalf.filled"]
+            default: return ["star.fill", "star.fill", "star.fill", "star.fill", "star.fill"]
+            }
+        }()
+        
+        for (index, state) in starStates.enumerated() {
+            if let star = ratingStack.arrangedSubviews[index] as? UIImageView {
+                star.image = UIImage(systemName: state)
+            }
+        }
     }
 }
