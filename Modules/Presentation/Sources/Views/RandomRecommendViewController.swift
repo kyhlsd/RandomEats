@@ -180,6 +180,16 @@ public class RandomRecommendViewController: UIViewController {
         menuImageView.translatesAutoresizingMaskIntoConstraints = false
         return menuImageView
     }()
+    private lazy var noImageLabel = {
+        let noImageLabel = UILabel()
+        noImageLabel.text = "No Image for This Restaurant"
+        noImageLabel.textAlignment = .center
+        noImageLabel.textColor = .gray
+        noImageLabel.font = .systemFont(ofSize: 20, weight: .medium)
+        noImageLabel.translatesAutoresizingMaskIntoConstraints = false
+        noImageLabel.isHidden = true
+        return noImageLabel
+    }()
     private lazy var ratingLabel = {
         let ratingLabel = UILabel()
         ratingLabel.text = "평점 : 4.1"
@@ -370,12 +380,19 @@ public class RandomRecommendViewController: UIViewController {
                     .withTintColor(.gray, renderingMode: .alwaysOriginal)
                 let resizedImage = self?.resizeImage(image: photoImage, to: CGSize(width: 100, height: 100))
                 let paddedImage = self?.addPaddingToImage(image: resizedImage, paddingSize: 100, paddingColor: .white)
-                    
+                
                 if let photoURL = photoURL {
                     DispatchQueue.main.async {
                         self?.restaurantImageView.kf.setImage(with: photoURL, placeholder: paddedImage, options: [
                             .cacheOriginalImage,
                         ])
+                        self?.noImageLabel.isHidden = true
+                    }
+                } else {
+                    // 이미지 정보가 없는 식당일 경우
+                    DispatchQueue.main.async {
+                        self?.restaurantImageView.image = paddedImage
+                        self?.noImageLabel.isHidden = false
                     }
                 }
             }
@@ -411,6 +428,7 @@ public class RandomRecommendViewController: UIViewController {
         view.addSubview(restaurantContainer)
         restaurantContainer.addSubview(restaurantNameLabel)
         restaurantContainer.addSubview(restaurantImageView)
+        restaurantContainer.addSubview(noImageLabel)
         restaurantContainer.addSubview(ratingLabel)
         restaurantContainer.addSubview(ratingStack)
         restaurantContainer.addSubview(restaurantDistanceLabel)
@@ -490,6 +508,9 @@ public class RandomRecommendViewController: UIViewController {
             restaurantImageView.trailingAnchor.constraint(equalTo: restaurantContainer.trailingAnchor, constant: -20),
             restaurantImageView.topAnchor.constraint(equalTo: restaurantNameLabel.bottomAnchor, constant: 12),
             restaurantImageView.heightAnchor.constraint(equalToConstant: 200),
+            
+            noImageLabel.centerXAnchor.constraint(equalTo: restaurantContainer.centerXAnchor),
+            noImageLabel.bottomAnchor.constraint(equalTo: restaurantImageView.bottomAnchor, constant: -20),
             
             ratingLabel.leadingAnchor.constraint(equalTo: restaurantContainer.leadingAnchor, constant: 20),
             ratingLabel.topAnchor.constraint(equalTo: restaurantImageView.bottomAnchor, constant: 12),
