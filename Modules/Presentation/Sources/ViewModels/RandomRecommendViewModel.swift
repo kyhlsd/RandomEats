@@ -20,6 +20,7 @@ public class RandomRecommendViewModel {
     @Published public var errorMessage: String?
     @Published public var restaurantDetail: PlaceDetail?
     @Published public var photoURL: URL?
+    @Published public var isFetching = false
     
     private var currentLocation: Location?
     var isConditionChanged = true
@@ -88,6 +89,7 @@ public class RandomRecommendViewModel {
             .sink { [weak self] restaurantDetail in
                 if let restaurantDetail = restaurantDetail {
                     self?.restaurantDetail = restaurantDetail
+                    self?.isFetching = false
                 }
             }
             .store(in: &cancellables)
@@ -121,6 +123,7 @@ public class RandomRecommendViewModel {
     //주변 식당 정보 가져오기
     func fetchNearbyRestaurants() {
         if let location = locationViewModel.location {
+            isFetching = true
             searchRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: maximumDistance)
             isConditionChanged = false
         }

@@ -278,13 +278,85 @@ public class RandomRecommendViewController: UIViewController {
         directionsButton.translatesAutoresizingMaskIntoConstraints = false
         return directionsButton
     }()
+    private lazy var indicatorContainer = {
+        let indicatorContainer = UIView()
+        indicatorContainer.layer.cornerRadius = 10
+        indicatorContainer.layer.masksToBounds = true
+        indicatorContainer.backgroundColor = UIColor(named: "PrimaryColor")
+        indicatorContainer.translatesAutoresizingMaskIntoConstraints = false
+        indicatorContainer.isHidden = true
+        return indicatorContainer
+    }()
+    private lazy var indicatorView = {
+        let indicatorView = UIActivityIndicatorView(style: .large)
+        indicatorView.color = .gray
+        indicatorView.translatesAutoresizingMaskIntoConstraints = false
+        return indicatorView
+    }()
+    private lazy var indicatorLabel = {
+        let indicatorLabel = UILabel()
+        indicatorLabel.text = "주위 식당 정보를 불러오고 있습니다\n이 작업은 처음에만 몇 초정도 소요됩니다"
+        indicatorLabel.numberOfLines = 2
+        indicatorLabel.textAlignment = .center
+        indicatorLabel.textColor = .gray
+        indicatorLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        indicatorLabel.translatesAutoresizingMaskIntoConstraints = false
+        return indicatorLabel
+    }()
     
     public override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = UIColor(named: "BackgroundColor")
         
-        // Slider 값 변경에 따른 UI 업데이트
+        bindSlider()
+        
+        bindViewModel()
+        
+        setButtonActions()
+        
+        setupUI()
+    }
+    
+    //MARK: 버튼 액션 함수
+    private func setButtonActions() {
+        // Button Actions
+        currentLocationButton.addAction(UIAction { [weak self] _ in
+            self?.randomRecommendViewModel.fetchCurrentLocationAndAddress()
+        }, for: .touchUpInside)
+        
+        searchButton.addAction(UIAction { _ in
+            print("위치 검색하기")
+        }, for: .touchUpInside)
+        
+        randomRecommendButton.addAction(UIAction { [weak self] _ in
+            self?.randomRecommendViewModel.fetchNearbyRestaurants()
+        }, for: .touchUpInside)
+        
+        restaurantInfoButton.addAction(UIAction { [weak self] _ in
+            guard let placeDetail = self?.randomRecommendViewModel.restaurantDetail else { return }
+            let webViewController = WebViewController(urlString: placeDetail.url)
+            self?.present(webViewController, animated: true, completion: nil)
+            
+        }, for: .touchUpInside)
+        
+        recommendAgainButton.addAction(UIAction { [weak self] _ in
+            guard let self = self else { return }
+            if self.randomRecommendViewModel.isConditionChanged {
+                self.randomRecommendViewModel.fetchNearbyRestaurants()
+            } else {
+                self.randomRecommendViewModel.getRandomRestaurantDetail()
+            }
+        }, for: .touchUpInside)
+        
+        directionsButton.addAction(UIAction { _ in
+            print("길찾기")
+        }, for: .touchUpInside)
+    }
+    
+    //MARK: 슬라이더 바인딩 함수
+    private func bindSlider() {
+        // Slider 값 변경에 따른 업데이트
         distanceSlider.controlEventPublisher(for: [.touchUpInside, .touchUpOutside])
             .map { [weak self] _ -> Float in
                 guard let self = self else { return 0.5 }
@@ -308,50 +380,6 @@ public class RandomRecommendViewController: UIViewController {
                 distanceSettingLabel.text = "최대 거리 설정 (\(tempMaximumDistance)m)"
             }
             .store(in: &cancellables)
-        
-        bindViewModel()
-        
-        setButtonActions()
-        
-        setupUI()
-    }
-    
-    //MARK: 버튼 액션 함수
-    private func setButtonActions() {
-        // Button Actions
-        currentLocationButton.addAction(UIAction { [weak self] _ in
-            self?.randomRecommendViewModel.fetchCurrentLocationAndAddress()
-        }, for: .touchUpInside)
-        
-        searchButton.addAction(UIAction { _ in
-            print("위치 검색하기")
-        }, for: .touchUpInside)
-        
-        randomRecommendButton.addAction(UIAction { [weak self] _ in
-            self?.randomRecommendViewModel.fetchNearbyRestaurants()
-            self?.randomRecommendButton.isHidden = true
-            self?.restaurantContainer.isHidden = false
-        }, for: .touchUpInside)
-        
-        restaurantInfoButton.addAction(UIAction { [weak self] _ in
-            guard let placeDetail = self?.randomRecommendViewModel.restaurantDetail else { return }
-            let webViewController = WebViewController(urlString: placeDetail.url)
-            self?.present(webViewController, animated: true, completion: nil)
-            
-        }, for: .touchUpInside)
-        
-        recommendAgainButton.addAction(UIAction { [weak self] _ in
-            guard let self = self else { return }
-            if self.randomRecommendViewModel.isConditionChanged {
-                self.randomRecommendViewModel.fetchNearbyRestaurants()
-            } else {
-                self.randomRecommendViewModel.getRandomRestaurantDetail()
-            }
-        }, for: .touchUpInside)
-        
-        directionsButton.addAction(UIAction { _ in
-            print("길찾기")
-        }, for: .touchUpInside)
     }
     
     //MARK: 뷰모델 바인딩 함수
@@ -409,6 +437,24 @@ public class RandomRecommendViewController: UIViewController {
             }
             .store(in: &cancellables)
         
+        // isFetching 바인딩
+        randomRecommendViewModel.$isFetching
+            .sink { [weak self] isFetching in
+                if isFetching {
+                    self?.randomRecommendButton.isHidden = true
+                    self?.restaurantContainer.isHidden = true
+                    self?.indicatorContainer.isHidden = false
+                    self?.indicatorView.startAnimating()
+                } else {
+                    if self?.randomRecommendButton.isHidden == true {
+                        self?.restaurantContainer.isHidden = false
+                        self?.indicatorContainer.isHidden = true
+                        self?.indicatorView.stopAnimating()
+                    }
+                }
+            }
+            .store(in: &cancellables)
+        
         // 에러 메시지 바인딩
         randomRecommendViewModel.$errorMessage
             .sink { errorMessage in
@@ -446,6 +492,9 @@ public class RandomRecommendViewController: UIViewController {
         restaurantContainer.addSubview(restaurantInfoButton)
         restaurantContainer.addSubview(recommendAgainButton)
         restaurantContainer.addSubview(directionsButton)
+        view.addSubview(indicatorContainer)
+        indicatorContainer.addSubview(indicatorView)
+        indicatorContainer.addSubview(indicatorLabel)
         
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
@@ -544,6 +593,19 @@ public class RandomRecommendViewController: UIViewController {
             directionsButton.trailingAnchor.constraint(equalTo: restaurantContainer.trailingAnchor, constant: -20),
             directionsButton.topAnchor.constraint(equalTo: recommendAgainButton.topAnchor),
             directionsButton.bottomAnchor.constraint(equalTo: recommendAgainButton.bottomAnchor),
+            
+            indicatorContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            indicatorContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            indicatorContainer.topAnchor.constraint(equalTo: recommendRestaurantLabel.bottomAnchor, constant: 10),
+            indicatorContainer.heightAnchor.constraint(equalToConstant: 366.6666666666667),
+            
+            indicatorView.centerXAnchor.constraint(equalTo: indicatorContainer.centerXAnchor),
+            indicatorView.centerYAnchor.constraint(equalTo: indicatorContainer.centerYAnchor),
+            indicatorView.widthAnchor.constraint(equalToConstant: 150),
+            indicatorView.heightAnchor.constraint(equalToConstant: 150),
+            
+            indicatorLabel.centerXAnchor.constraint(equalTo: indicatorContainer.centerXAnchor),
+            indicatorLabel.bottomAnchor.constraint(equalTo: indicatorContainer.bottomAnchor, constant: -20),
         ])
     }
     
