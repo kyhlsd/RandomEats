@@ -363,7 +363,7 @@ public class RandomRecommendViewController: UIViewController {
             }
             .store(in: &cancellables)
         
-        // Todo: 거리 update
+        // 식당 상세 정보 바인딩
         randomRecommendViewModel.$restaurantDetail
             .sink { [weak self] restaurantDetail in
                 if let restaurantDetail = restaurantDetail {
@@ -371,6 +371,7 @@ public class RandomRecommendViewController: UIViewController {
                         self?.restaurantNameLabel.text = restaurantDetail.name
                         self?.ratingLabel.text = "평점 : \(restaurantDetail.rating ?? 0.0) (\(restaurantDetail.user_ratings_total))"
                         self?.updateRatingStars(rating: restaurantDetail.rating ?? 0.0)
+                        self?.restaurantDistanceLabel.text = "거리 : \(self?.randomRecommendViewModel.getDistanceBetween() ?? 0) m"
                     }
                 }
             }

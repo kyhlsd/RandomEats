@@ -21,6 +21,7 @@ public class RandomRecommendViewModel {
     @Published public var restaurantDetail: PlaceDetail?
     @Published public var photoURL: URL?
     
+    private var currentLocation: Location?
     var maximumDistance = 300
     let allowedValues: [Float] = [0.0, 0.25, 0.5, 0.75, 1.0]
     let allowedDistances: [Int] = [100, 200, 300, 400, 500]
@@ -38,6 +39,7 @@ public class RandomRecommendViewModel {
         locationViewModel.$location
             .compactMap { $0 }
             .sink { [weak self] location in
+                self?.currentLocation = location
                 self?.fetchAddress(for: location)
             }
             .store(in: &cancellables)
@@ -108,7 +110,7 @@ public class RandomRecommendViewModel {
     }
     
     // 현재 위치 가져오기 시작
-    public func fetchCurrentLocationAndAddress() {
+    func fetchCurrentLocationAndAddress() {
         locationViewModel.fetchCurrentLocation()
     }
     
@@ -118,17 +120,45 @@ public class RandomRecommendViewModel {
     }
     
     //주변 식당 정보 가져오기
-    public func fetchNearbyRestaurants() {
+    func fetchNearbyRestaurants() {
         if let location = locationViewModel.location {
             searchRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: maximumDistance)
         }
     }
     
+    // 식당 상세 정보 가져오기
     func getRandomRestaurantDetail() {
         guard let randomPickedId = restaurantIDs.randomElement() else {
             print("Random Pick Id 오류")
             return
         }
         searchRestaurantViewModel.fetchRestaurantDetail(placeId: randomPickedId)
+    }
+    
+    // 위치, 경도 값으로 거리 계산 (Haversine 공식)
+    func getDistanceBetween() -> Int {
+        guard let currentLocation = currentLocation, let destinationLocation = restaurantDetail?.geometry.location else {
+            print("Location is nil")
+            return 0
+        }
+        
+        let earthRadius = 6_371_000.0
+        
+        let currentLat = currentLocation.getLatitude()
+        let currentLng = currentLocation.getLongitude()
+        let destinationLat = destinationLocation.getLatitude()
+        let destinationLng = destinationLocation.getLongitude()
+        
+        let currentLatRad = currentLat * .pi / 180
+        let destinationLatRad = destinationLat * .pi / 180
+        let deltaLat = (destinationLat - currentLat) * .pi / 180
+        let deltaLng = (destinationLng - currentLng) * .pi / 180
+        
+        let a = sin(deltaLat / 2) * sin(deltaLat / 2) + cos(currentLatRad) * cos(destinationLatRad) * sin(deltaLng / 2) * sin(deltaLng / 2)
+        let c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        
+        let distance = Int(earthRadius * c)
+        
+        return distance
     }
 }
