@@ -7,9 +7,11 @@
 
 import UIKit
 import Combine
+import Domain
 
 class SearchPlaceViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
+    private var placePredictions = [PlacePrediction]()
     
     private var searchPlaceViewModel: SearchPlaceViewModel
     
@@ -68,6 +70,10 @@ class SearchPlaceViewController: UIViewController {
         bindViewModel()
         
         setupUI()
+        
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(SearchPlaceTableViewCell.self, forCellReuseIdentifier: "searchPlaceTableViewCell")
     }
     
     private func bindSearchBar() {
@@ -76,11 +82,7 @@ class SearchPlaceViewController: UIViewController {
             .removeDuplicates()
             .sink { [weak self] searchText in
                 guard let self = self else { return }
-                if searchText.isEmpty {
-                    print("SearchText is empty")
-                } else {
-                    self.searchPlaceViewModel.fetchPlacePrediction(query: searchText)
-                }
+                self.searchPlaceViewModel.fetchPlacePrediction(query: searchText)
             }
             .store(in: &cancellables)
     }
@@ -89,7 +91,10 @@ class SearchPlaceViewController: UIViewController {
         searchPlaceViewModel.$placePredictions
             .sink { [weak self] placePredictions in
                 if let placePredictions = placePredictions {
-                    print("PlacePredictions: \(placePredictions)")
+                    self?.placePredictions = placePredictions
+                    DispatchQueue.main.async {
+                        self?.tableView.reloadData()
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -122,10 +127,22 @@ class SearchPlaceViewController: UIViewController {
             tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             tableView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            tableView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
         ])
     }
 }
 
-extension SearchPlaceViewController: UISearchBarDelegate {
+extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource {
     
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return placePredictions.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "searchPlaceTableViewCell", for: indexPath) as? SearchPlaceTableViewCell else {
+            return UITableViewCell()
+        }
+        cell.placeLabel.text = placePredictions[indexPath.row].description
+        return cell
+    }
 }

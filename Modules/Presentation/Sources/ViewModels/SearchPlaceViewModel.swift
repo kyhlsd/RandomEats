@@ -24,18 +24,22 @@ public class SearchPlaceViewModel {
     
     // 장소 자동 완성 응답 가져오기
     func fetchPlacePrediction(query: String) {
-        searchPlaceUseCase.fetchPlacePrediction(query: query)
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { [weak self] completion in
-                switch completion {
-                case .failure(let error):
-                    self?.errorMessage = "Failed to fetch nearby restaurants: \(error)"
-                case .finished:
-                    break
-                }
-            }, receiveValue: { [weak self] placePredictions in
-                self?.placePredictions = placePredictions
-            })
-            .store(in: &cancellables)
+        if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            placePredictions = []
+        } else {
+            searchPlaceUseCase.fetchPlacePrediction(query: query)
+                .receive(on: DispatchQueue.main)
+                .sink(receiveCompletion: { [weak self] completion in
+                    switch completion {
+                    case .failure(let error):
+                        self?.errorMessage = "Failed to fetch nearby restaurants: \(error)"
+                    case .finished:
+                        break
+                    }
+                }, receiveValue: { [weak self] placePredictions in
+                    self?.placePredictions = placePredictions
+                })
+                .store(in: &cancellables)
+        }
     }
 }
