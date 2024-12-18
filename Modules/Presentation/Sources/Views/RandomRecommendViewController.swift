@@ -369,7 +369,7 @@ public class RandomRecommendViewController: UIViewController {
                 if let restaurantDetail = restaurantDetail {
                     DispatchQueue.main.async {
                         self?.restaurantNameLabel.text = restaurantDetail.name
-                        self?.ratingLabel.text = "평점 : \(restaurantDetail.rating ?? 0.0) (\(restaurantDetail.user_ratings_total))"
+                        self?.ratingLabel.text = "평점 : \(restaurantDetail.rating ?? 0.0) (\(restaurantDetail.user_ratings_total ?? 0))"
                         self?.updateRatingStars(rating: restaurantDetail.rating ?? 0.0)
                         self?.restaurantDistanceLabel.text = "거리 : \(self?.randomRecommendViewModel.getDistanceBetween() ?? 0) m"
                     }

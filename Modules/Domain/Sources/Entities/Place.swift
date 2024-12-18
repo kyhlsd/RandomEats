@@ -26,7 +26,7 @@ public struct PlaceDetail: Decodable {
     public let geometry: Geometry
     public let url: String
     public let rating: Double?
-    public let user_ratings_total: Int
+    public let user_ratings_total: Int?
     public let photos: [Photo]?
     
     public struct Geometry: Decodable {
@@ -35,8 +35,5 @@ public struct PlaceDetail: Decodable {
     
     public struct Photo: Decodable {
         public let photo_reference: String
-        public let width: Int
-        public let height: Int
-        public let html_attributions: [String]
     }
 }

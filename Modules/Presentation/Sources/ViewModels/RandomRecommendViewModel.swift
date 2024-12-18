@@ -92,10 +92,7 @@ public class RandomRecommendViewModel {
         
         searchRestaurantViewModel.$photoURL
             .sink { [weak self] photoURL in
-                if let photoURL = photoURL {
                     self?.photoURL = photoURL
-                    print("viewModel's photoURL = \(photoURL)")
-                }
             }
             .store(in: &cancellables)
         
