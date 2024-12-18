@@ -22,6 +22,7 @@ public class RandomRecommendViewModel {
     @Published public var photoURL: URL?
     
     private var currentLocation: Location?
+    var isConditionChanged = true
     var maximumDistance = 300
     let allowedValues: [Float] = [0.0, 0.25, 0.5, 0.75, 1.0]
     let allowedDistances: [Int] = [100, 200, 300, 400, 500]
@@ -41,6 +42,7 @@ public class RandomRecommendViewModel {
             .sink { [weak self] location in
                 self?.currentLocation = location
                 self?.fetchAddress(for: location)
+                self?.isConditionChanged = true
             }
             .store(in: &cancellables)
         
@@ -120,6 +122,7 @@ public class RandomRecommendViewModel {
     func fetchNearbyRestaurants() {
         if let location = locationViewModel.location {
             searchRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: maximumDistance)
+            isConditionChanged = false
         }
     }
     

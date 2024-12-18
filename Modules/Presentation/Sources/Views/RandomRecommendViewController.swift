@@ -294,6 +294,7 @@ public class RandomRecommendViewController: UIViewController {
                 guard let self = self else { return }
                 distanceSlider.setValue(allowedValue, animated: false)
                 self.randomRecommendViewModel.maximumDistance = mapToDistance(value: allowedValue)
+                self.randomRecommendViewModel.isConditionChanged = true
             }
             .store(in: &cancellables)
         distanceSlider.valuePublisher
@@ -340,7 +341,12 @@ public class RandomRecommendViewController: UIViewController {
         }, for: .touchUpInside)
         
         recommendAgainButton.addAction(UIAction { [weak self] _ in
-            self?.randomRecommendViewModel.getRandomRestaurantDetail()
+            guard let self = self else { return }
+            if self.randomRecommendViewModel.isConditionChanged {
+                self.randomRecommendViewModel.fetchNearbyRestaurants()
+            } else {
+                self.randomRecommendViewModel.getRandomRestaurantDetail()
+            }
         }, for: .touchUpInside)
         
         directionsButton.addAction(UIAction { _ in
