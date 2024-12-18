@@ -9,6 +9,8 @@ import UIKit
 import Combine
 import CombineCocoa
 import Kingfisher
+import Data
+import Domain
 
 public class RandomRecommendViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
@@ -325,8 +327,14 @@ public class RandomRecommendViewController: UIViewController {
             self?.randomRecommendViewModel.fetchCurrentLocationAndAddress()
         }, for: .touchUpInside)
         
-        searchButton.addAction(UIAction { _ in
-            print("위치 검색하기")
+        searchButton.addAction(UIAction { [weak self] _ in
+            let searchPlaceService = SearchPlaceServiceImplementaion()
+            let searchPlaceRepository = SearchPlaceRepositoryImplementation(searchPlacetService: searchPlaceService)
+            let searchPlaceUseCase = SearchPlaceUseCase(searchPlaceRepository: searchPlaceRepository)
+            let searchPlaceViewModel = SearchPlaceViewModel(searchPlaceUseCase: searchPlaceUseCase)
+            
+            let searchPlaceViewController = SearchPlaceViewController(searchPlaceViewModel: searchPlaceViewModel)
+            self?.present(searchPlaceViewController, animated: true, completion: nil)
         }, for: .touchUpInside)
         
         randomRecommendButton.addAction(UIAction { [weak self] _ in
