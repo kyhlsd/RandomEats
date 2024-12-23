@@ -30,18 +30,7 @@ class SearchPlaceViewController: UIViewController {
         closeButton.tintColor = .black
         return closeButton
     }()
-    private lazy var navigationBar = {
-        let closeButtonItem = UIBarButtonItem(customView: closeButton)
-        let navigationItem = UINavigationItem(title: "위치 검색")
-        navigationItem.rightBarButtonItem = closeButtonItem
-        let navigationBar = UINavigationBar()
-        navigationBar.setItems([navigationItem], animated: true)
-        navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationBar.backgroundColor = UIColor(named: "PrimaryColor")
-        navigationBar.shadowImage = UIImage()
-        navigationBar.translatesAutoresizingMaskIntoConstraints = false
-        return navigationBar
-    }()
+
     private lazy var searchBar = {
         let searchBar = UISearchBar()
         searchBar.placeholder = "장소를 검색하세요"
@@ -79,6 +68,8 @@ class SearchPlaceViewController: UIViewController {
         bindSearchBar()
         
         bindViewModel()
+        
+        setupNavigationBar()
         
         setupUI()
         
@@ -124,18 +115,27 @@ class SearchPlaceViewController: UIViewController {
             .store(in: &cancellables)
     }
     
+    private func setupNavigationBar() {
+        if let navigationController = self.navigationController {
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = UIColor(named: "PrimaryColor")
+            navigationController.navigationBar.standardAppearance = appearance
+            navigationController.navigationBar.scrollEdgeAppearance = appearance
+            
+            self.navigationItem.title = "위치 변경"
+            let rightButton = UIBarButtonItem(customView: closeButton)
+            self.navigationItem.rightBarButtonItem = rightButton
+        }
+    }
+    
     private func setupUI() {
-        view.addSubview(navigationBar)
         view.addSubview(searchBar)
         view.addSubview(tableView)
         
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            navigationBar.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            navigationBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
-            navigationBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
-            
-            searchBar.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 4),
+            searchBar.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 4),
             searchBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             searchBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             
@@ -168,7 +168,7 @@ extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // Todo: 장소 선택 시 기능 구현
-        print("select cell")
+        let searchMapViewController = SearchMapViewController()
+        self.navigationController?.pushViewController(searchMapViewController, animated: true)
     }
 }
