@@ -328,14 +328,8 @@ public class RandomRecommendViewController: UIViewController {
         }, for: .touchUpInside)
         
         searchButton.addAction(UIAction { [weak self] _ in
-            let searchPlaceService = SearchPlaceServiceImplementaion()
-            let searchPlaceRepository = SearchPlaceRepositoryImplementation(searchPlacetService: searchPlaceService)
-            let searchPlaceUseCase = SearchPlaceUseCase(searchPlaceRepository: searchPlaceRepository)
-            let searchPlaceViewModel = SearchPlaceViewModel(searchPlaceUseCase: searchPlaceUseCase)
-            
-            let searchPlaceViewController = SearchPlaceViewController(searchPlaceViewModel: searchPlaceViewModel)
-            let navigationController = UINavigationController(rootViewController: searchPlaceViewController)
-            self?.present(navigationController, animated: true, completion: nil)
+            let searchPageViewController = SearchPageViewController()
+            self?.present(searchPageViewController, animated: true, completion: nil)
         }, for: .touchUpInside)
         
         randomRecommendButton.addAction(UIAction { [weak self] _ in

@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SearchPlaceTableViewCell: UITableViewCell {
+class SearchTableViewCell: UITableViewCell {
     lazy var placeTitleLabel = {
         let placeTitleLabel = UILabel()
         placeTitleLabel.text = ""

@@ -12,11 +12,14 @@ import Domain
 class SearchPlaceViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
     private var placePredictions = [PlacePrediction]()
+    private var pages: [UIPageViewController]
+    weak var delegate: SearchPageNavigationDelegate?
     
     private var searchPlaceViewModel: SearchPlaceViewModel
     
     public init(searchPlaceViewModel: SearchPlaceViewModel) {
         self.searchPlaceViewModel = searchPlaceViewModel
+        self.pages = []
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -24,13 +27,6 @@ class SearchPlaceViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private lazy var closeButton = {
-        let closeButton = UIButton()
-        closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
-        closeButton.tintColor = .black
-        return closeButton
-    }()
-
     private lazy var searchBar = {
         let searchBar = UISearchBar()
         searchBar.placeholder = "장소를 검색하세요"
@@ -61,15 +57,9 @@ class SearchPlaceViewController: UIViewController {
         
         view.backgroundColor = UIColor(named: "BackgroundColor")
         
-        closeButton.addAction(UIAction { [weak self] _ in
-            self?.dismiss(animated: true)
-        }, for: .touchUpInside)
-        
         bindSearchBar()
         
         bindViewModel()
-        
-        setupNavigationBar()
         
         setupUI()
         
@@ -79,7 +69,7 @@ class SearchPlaceViewController: UIViewController {
         
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.register(SearchPlaceTableViewCell.self, forCellReuseIdentifier: "searchPlaceTableViewCell")
+        tableView.register(SearchTableViewCell.self, forCellReuseIdentifier: "searchPlaceTableViewCell")
     }
     
     private func bindSearchBar() {
@@ -115,20 +105,6 @@ class SearchPlaceViewController: UIViewController {
             .store(in: &cancellables)
     }
     
-    private func setupNavigationBar() {
-        if let navigationController = self.navigationController {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor(named: "PrimaryColor")
-            navigationController.navigationBar.standardAppearance = appearance
-            navigationController.navigationBar.scrollEdgeAppearance = appearance
-            
-            self.navigationItem.title = "위치 변경"
-            let rightButton = UIBarButtonItem(customView: closeButton)
-            self.navigationItem.rightBarButtonItem = rightButton
-        }
-    }
-    
     private func setupUI() {
         view.addSubview(searchBar)
         view.addSubview(tableView)
@@ -142,7 +118,7 @@ class SearchPlaceViewController: UIViewController {
             tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 4),
             tableView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             tableView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-            tableView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
+            tableView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
         ])
     }
     
@@ -158,7 +134,7 @@ extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "searchPlaceTableViewCell", for: indexPath) as? SearchPlaceTableViewCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "searchPlaceTableViewCell", for: indexPath) as? SearchTableViewCell else {
             return UITableViewCell()
         }
         cell.placeTitleLabel.text = placePredictions[indexPath.row].mainText
@@ -168,7 +144,6 @@ extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let searchMapViewController = SearchMapViewController()
-        self.navigationController?.pushViewController(searchMapViewController, animated: true)
+        delegate?.goToNextPage()
     }
 }
