@@ -46,12 +46,23 @@ class SearchPlaceViewController: UIViewController {
         let searchBar = UISearchBar()
         searchBar.placeholder = "장소를 검색하세요"
         searchBar.backgroundColor = UIColor(named: "BackgroundColor")
-        searchBar.backgroundImage = UIImage()
+        searchBar.searchBarStyle = .minimal
         searchBar.translatesAutoresizingMaskIntoConstraints = false
+        // textField 기본 좌우 여백 제거
+        let textField = searchBar.searchTextField
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            textField.leadingAnchor.constraint(equalTo: searchBar.leadingAnchor),
+            textField.trailingAnchor.constraint(equalTo: searchBar.trailingAnchor),
+            textField.topAnchor.constraint(equalTo: searchBar.topAnchor, constant: 8),
+            textField.bottomAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: -8)
+        ])
+        
         return searchBar
     }()
     private lazy var tableView = {
         let tableView = UITableView()
+        tableView.layer.cornerRadius = 10
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
@@ -120,15 +131,17 @@ class SearchPlaceViewController: UIViewController {
             navigationBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
             navigationBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
             
-            searchBar.topAnchor.constraint(equalTo: navigationBar.bottomAnchor),
+            searchBar.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 4),
             searchBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             searchBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             
-            tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 4),
             tableView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             tableView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             tableView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
         ])
+        
+        
     }
 }
 
@@ -144,6 +157,12 @@ extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource 
         }
         cell.placeTitleLabel.text = placePredictions[indexPath.row].mainText
         cell.placeDescriptionLabel.text = placePredictions[indexPath.row].description
+        cell.selectionStyle = .none
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // Todo: 장소 선택 시 기능 구현
+        print("select cell")
     }
 }
