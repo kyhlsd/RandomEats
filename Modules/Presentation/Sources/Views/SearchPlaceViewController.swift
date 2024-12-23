@@ -63,10 +63,6 @@ class SearchPlaceViewController: UIViewController {
         
         setupUI()
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-        tapGesture.cancelsTouchesInView = false
-        view.addGestureRecognizer(tapGesture)
-        
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(SearchTableViewCell.self, forCellReuseIdentifier: "searchPlaceTableViewCell")
@@ -120,10 +116,6 @@ class SearchPlaceViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             tableView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
         ])
-    }
-    
-    @objc func dismissKeyboard() {
-        view.endEditing(true)
     }
 }
 

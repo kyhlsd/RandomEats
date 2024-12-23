@@ -29,6 +29,7 @@ class SearchPageViewController: UIViewController {
         let backButton = UIButton()
         backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
         backButton.tintColor = .black
+        backButton.isHidden = true
         return backButton
     }()
     private lazy var closeButton = {
@@ -86,6 +87,10 @@ class SearchPageViewController: UIViewController {
         }, for: .touchUpInside)
         
         setupUI()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
     }
     
     private func setupUI() {
@@ -104,14 +109,24 @@ class SearchPageViewController: UIViewController {
             pageViewController.view.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
         ])
     }
+    
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
 }
 
 extension SearchPageViewController: SearchPageNavigationDelegate {
     internal func goToNextPage() {
-        pageViewController.setViewControllers([pages[1]], direction: .forward, animated: true)
+        DispatchQueue.main.async {
+            self.pageViewController.setViewControllers([self.pages[1]], direction: .forward, animated: true)
+            self.backButton.isHidden = false
+        }
     }
     
     internal func backToPreviousPage() {
-        pageViewController.setViewControllers([pages[0]], direction: .reverse, animated: true)
+        DispatchQueue.main.async {
+            self.pageViewController.setViewControllers([self.pages[0]], direction: .reverse, animated: true)
+            self.backButton.isHidden = true
+        }
     }
 }
