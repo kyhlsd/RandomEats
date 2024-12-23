@@ -142,7 +142,8 @@ extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource 
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "searchPlaceTableViewCell", for: indexPath) as? SearchPlaceTableViewCell else {
             return UITableViewCell()
         }
-        cell.placeLabel.text = placePredictions[indexPath.row].description
+        cell.placeTitleLabel.text = placePredictions[indexPath.row].mainText
+        cell.placeDescriptionLabel.text = placePredictions[indexPath.row].description
         return cell
     }
 }

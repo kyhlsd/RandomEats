@@ -8,16 +8,28 @@
 import UIKit
 
 class SearchPlaceTableViewCell: UITableViewCell {
-    lazy var placeLabel = {
-        let placeLabel = UILabel()
-        placeLabel.text = ""
-        placeLabel.numberOfLines = 1
-        placeLabel.lineBreakMode = .byTruncatingHead
-        placeLabel.textAlignment = .left
-        placeLabel.textColor = .black
-        placeLabel.font = .systemFont(ofSize: 15, weight: .medium)
-        placeLabel.translatesAutoresizingMaskIntoConstraints = false
-        return placeLabel
+    lazy var placeTitleLabel = {
+        let placeTitleLabel = UILabel()
+        placeTitleLabel.text = ""
+        placeTitleLabel.numberOfLines = 1
+        placeTitleLabel.lineBreakMode = .byTruncatingHead
+        placeTitleLabel.textAlignment = .left
+        placeTitleLabel.textColor = .black
+        placeTitleLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        placeTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        return placeTitleLabel
+    }()
+    
+    lazy var placeDescriptionLabel = {
+        let placeDescriptionLabel = UILabel()
+        placeDescriptionLabel.text = ""
+        placeDescriptionLabel.numberOfLines = 1
+        placeDescriptionLabel.lineBreakMode = .byTruncatingHead
+        placeDescriptionLabel.textAlignment = .left
+        placeDescriptionLabel.textColor = .systemGray
+        placeDescriptionLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        placeDescriptionLabel.translatesAutoresizingMaskIntoConstraints = false
+        return placeDescriptionLabel
     }()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -30,13 +42,18 @@ class SearchPlaceTableViewCell: UITableViewCell {
     }
     
     private func setupUI() {
-        contentView.addSubview(placeLabel)
+        contentView.addSubview(placeTitleLabel)
+        contentView.addSubview(placeDescriptionLabel)
         
         NSLayoutConstraint.activate([
-            placeLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-            placeLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
-            placeLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
-            placeLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
+            placeTitleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            placeTitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            placeTitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
+            
+            placeDescriptionLabel.topAnchor.constraint(equalTo: placeTitleLabel.bottomAnchor, constant: 5),
+            placeDescriptionLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
+            placeDescriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            placeDescriptionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
         ])
     }
 }
