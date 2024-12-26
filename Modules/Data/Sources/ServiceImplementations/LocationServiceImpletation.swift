@@ -16,12 +16,20 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol, C
     public override init() {
         super.init()
         self.locationManager.delegate = self
-//        self.locationManager.requestWhenInUseAuthorization()
     }
     
     public func fetchCurrentLocation() async throws -> Location {
         return try await withCheckedThrowingContinuation { continuation in
             self.locationManager.requestWhenInUseAuthorization()
+            let status = locationManager.authorizationStatus
+            if status == .denied {
+                continuation.resume(throwing: LocationServiceError.permissionDenied)
+                return
+            } else if status == .restricted {
+                continuation.resume(throwing: LocationServiceError.permissionRestricted)
+                return
+            }
+            
             self.continuation = continuation
             locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
             locationManager.startUpdatingLocation()
@@ -40,8 +48,12 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol, C
     }
     
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // 중복 호출 방지
+        guard let continuation = continuation else { return }
+        self.continuation = nil // 사용 후 nil로 처리
+        
         // 오류가 발생하면 continuation을 통해 오류를 반환
-        continuation?.resume(throwing: error)
+        continuation.resume(throwing: error)
         // 위치 업데이트가 실패했을 경우 더 이상 위치 업데이트를 받지 않도록 중지
         locationManager.stopUpdatingLocation()
     }

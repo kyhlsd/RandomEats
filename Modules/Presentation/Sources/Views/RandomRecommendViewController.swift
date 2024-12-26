@@ -460,8 +460,13 @@ public class RandomRecommendViewController: UIViewController {
         
         // 에러 메시지 바인딩
         randomRecommendViewModel.$errorMessage
+            .compactMap { $0 } // nil 값 제거
             .sink { errorMessage in
-                if let errorMessage = errorMessage {
+                if errorMessage == LocationServiceError.permissionDenied.errorDescription {
+                    self.showPermissionDeniedAlert()
+                } else if errorMessage == LocationServiceError.permissionRestricted.errorDescription {
+                    self.showPermissionRestrictedAlert()
+                } else {
                     print("Error: \(errorMessage)")
                 }
             }
@@ -638,10 +643,54 @@ public class RandomRecommendViewController: UIViewController {
         }
     }
     
-    // Todo: Direction API 연결 후
-    // 현재 위치와 식당 거리 업데이트
-    private func updateDistanceLabel() {
-        
+    //MARK: Alert 함수
+    private func showPermissionDeniedAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(
+                title: "위치 서비스 권한 필요",
+                message: self.randomRecommendViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "설정으로 이동", style: .default, handler: { _ in
+                if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsURL)
+                }
+            }))
+            alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+            
+            self.present(alert, animated: true)
+        }
+    }
+    
+    private func showPermissionRestrictedAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let alert = UIAlertController(
+                title: "위치 서비스 권한 필요",
+                message: self.randomRecommendViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "확인", style: .default))
+            
+            self.present(alert, animated: true)
+        }
+    }
+    
+    private func showLocationUnknownErrorAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(
+                title: "위치 정보 가져오기 실패",
+                message: self.randomRecommendViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "닫기", style: .default))
+            
+            self.present(alert, animated: true)
+        }
     }
     
     //MARK: UI 보조 함수

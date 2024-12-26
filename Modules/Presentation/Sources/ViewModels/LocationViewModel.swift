@@ -25,8 +25,12 @@ public class LocationViewModel {
             do {
                 let fetchedLocation = try await locationUseCase.getCurrentLocation()
                 self.location = fetchedLocation
+            } catch LocationServiceError.permissionDenied {
+                self.errorMessage = LocationServiceError.permissionDenied.errorDescription
+            } catch LocationServiceError.permissionRestricted {
+                self.errorMessage = LocationServiceError.permissionRestricted.errorDescription
             } catch {
-                self.errorMessage = "Failed to get current location: \(error)"
+                self.errorMessage = "\(LocationServiceError.unknownError.errorDescription ?? "Failed to fetch location"): \(error)"
             }
         }
     }
