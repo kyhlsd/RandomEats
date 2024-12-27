@@ -91,6 +91,14 @@ class SearchPlaceViewController: UIViewController {
             }
             .store(in: &cancellables)
         
+        searchPlaceViewModel.$placeLocation
+            .sink { [weak self] placeLocation in
+                if let placeLocation = placeLocation {
+                    self?.delegate?.goToNextPage(with: placeLocation)
+                }
+            }
+            .store(in: &cancellables)
+        
         // 에러 메시지 바인딩
         searchPlaceViewModel.$errorMessage
             .sink { errorMessage in
@@ -137,6 +145,5 @@ extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource 
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         searchPlaceViewModel.fetchCoordinates(placeId: placePredictions[indexPath.row].placeId)
-        delegate?.goToNextPage()
     }
 }

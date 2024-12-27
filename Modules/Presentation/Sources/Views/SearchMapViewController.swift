@@ -7,9 +7,10 @@
 
 import UIKit
 import MapKit
+import Domain
 
 class SearchMapViewController: UIViewController {
-    private let initialLocation = CLLocation(latitude: 37.574475, longitude: 126.988776)
+    var placeLocation = Location(latitude: 37.574475, longitude: 126.988776)
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -69,7 +70,7 @@ class SearchMapViewController: UIViewController {
         
         setupUI()
         
-        centerMapOnLocation(location: initialLocation)
+        centerMapOnLocation(location: placeLocation)
         
         addAnnotation()
         
@@ -105,46 +106,58 @@ class SearchMapViewController: UIViewController {
         ])
     }
     
-    private func centerMapOnLocation(location: CLLocation, regionRadius: CLLocationDistance = 500) {
+    func updateMapView() {
+        centerMapOnLocation(location: placeLocation)
+        addAnnotation()
+    }
+    
+    private func centerMapOnLocation(location: Location, regionRadius: CLLocationDistance = 500) {
         let coordinateRegion = MKCoordinateRegion(
-            center: location.coordinate,
+            center: CLLocationCoordinate2D(latitude: location.getLatitude(), longitude: location.getLongitude()),
             latitudinalMeters: regionRadius,
             longitudinalMeters: regionRadius
         )
-        mapView.setRegion(coordinateRegion, animated: false)
+        DispatchQueue.main.async {
+            self.mapView.setRegion(coordinateRegion, animated: false)
+        }
     }
     
     private func addAnnotation() {
         let annotation = MKPointAnnotation()
-        annotation.coordinate = CLLocationCoordinate2D(latitude: initialLocation.coordinate.latitude, longitude: initialLocation.coordinate.longitude)
-        mapView.addAnnotation(annotation)
+        annotation.coordinate = CLLocationCoordinate2D(latitude: placeLocation.getLatitude(), longitude: placeLocation.getLongitude())
+        DispatchQueue.main.async {
+            self.mapView.removeAnnotations(self.mapView.annotations)
+            self.mapView.addAnnotation(annotation)
+        }
     }
     
     // 겹치는 부분 중복 테두리 방지를 위한 테두리 추가 함수
     private func addBorder(to button: UIButton, edges: UIRectEdge, color: UIColor, width: CGFloat) {
-        if edges.contains(.top) {
-            let topBorder = CALayer()
-            topBorder.backgroundColor = color.cgColor
-            topBorder.frame = CGRect(x: 0, y: 0, width: button.frame.width, height: width)
-            button.layer.addSublayer(topBorder)
-        }
-        if edges.contains(.bottom) {
-            let bottomBorder = CALayer()
-            bottomBorder.backgroundColor = color.cgColor
-            bottomBorder.frame = CGRect(x: 0, y: button.frame.height - width, width: button.frame.width, height: width)
-            button.layer.addSublayer(bottomBorder)
-        }
-        if edges.contains(.left) {
+        DispatchQueue.main.async {
+            if edges.contains(.top) {
+                let topBorder = CALayer()
+                topBorder.backgroundColor = color.cgColor
+                topBorder.frame = CGRect(x: 0, y: 0, width: button.frame.width, height: width)
+                button.layer.addSublayer(topBorder)
+            }
+            if edges.contains(.bottom) {
+                let bottomBorder = CALayer()
+                bottomBorder.backgroundColor = color.cgColor
+                bottomBorder.frame = CGRect(x: 0, y: button.frame.height - width, width: button.frame.width, height: width)
+                button.layer.addSublayer(bottomBorder)
+            }
+            if edges.contains(.left) {
                 let leftBorder = CALayer()
                 leftBorder.backgroundColor = color.cgColor
                 leftBorder.frame = CGRect(x: 0, y: 0, width: width, height: button.frame.height)
                 button.layer.addSublayer(leftBorder)
             }
-        if edges.contains(.right) {
-            let rightBorder = CALayer()
-            rightBorder.backgroundColor = color.cgColor
-            rightBorder.frame = CGRect(x: button.frame.width - width, y: 0, width: width, height: button.frame.height)
-            button.layer.addSublayer(rightBorder)
+            if edges.contains(.right) {
+                let rightBorder = CALayer()
+                rightBorder.backgroundColor = color.cgColor
+                rightBorder.frame = CGRect(x: button.frame.width - width, y: 0, width: width, height: button.frame.height)
+                button.layer.addSublayer(rightBorder)
+            }
         }
     }
 }

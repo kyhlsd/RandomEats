@@ -11,7 +11,7 @@ import Domain
 import Data
 
 protocol SearchPageNavigationDelegate: AnyObject {
-    func goToNextPage()
+    func goToNextPage(with location: Location)
 }
 
 class SearchPageViewController: UIViewController {
@@ -121,7 +121,10 @@ class SearchPageViewController: UIViewController {
 }
 
 extension SearchPageViewController: SearchPageNavigationDelegate {
-    internal func goToNextPage() {
+    internal func goToNextPage(with location: Location) {
+        self.searchMapViewController.placeLocation = location
+        self.searchMapViewController.updateMapView()
+        
         DispatchQueue.main.async {
             self.pageViewController.setViewControllers([self.pages[1]], direction: .forward, animated: true)
             self.backButton.isHidden = false
