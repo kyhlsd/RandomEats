@@ -12,14 +12,17 @@ import Data
 
 public class SearchPlaceViewModel {
     private let searchPlaceUseCase: SearchPlaceUseCaseProtocol
+    private let fetchCoordinatesUseCase: FetchCoordinatesUseCaseProtocol
     private var cancellables = Set<AnyCancellable>()
     
     @Published var placePredictions: [PlacePrediction]?
+    @Published var placeLocation: Location?
     @Published var errorMessage: String?
     
     // UseCase 주입
-    public init(searchPlaceUseCase: SearchPlaceUseCaseProtocol) {
+    public init(searchPlaceUseCase: SearchPlaceUseCaseProtocol, fetchCoordinatesUseCase: FetchCoordinatesUseCaseProtocol) {
         self.searchPlaceUseCase = searchPlaceUseCase
+        self.fetchCoordinatesUseCase = fetchCoordinatesUseCase
     }
     
     // 장소 자동 완성 응답 가져오기
@@ -41,5 +44,22 @@ public class SearchPlaceViewModel {
                 })
                 .store(in: &cancellables)
         }
+    }
+    
+    // placeId로 coordinates 가져오기
+    func fetchCoordinates(placeId: String) {
+        fetchCoordinatesUseCase.fetchCoordinates(placeId: placeId)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    self?.errorMessage = "Failed to fetch coordinates: \(error)"
+                case .finished:
+                    break
+                }
+            }, receiveValue: { [weak self] location in
+                self?.placeLocation = location
+            })
+            .store(in: &cancellables)
     }
 }

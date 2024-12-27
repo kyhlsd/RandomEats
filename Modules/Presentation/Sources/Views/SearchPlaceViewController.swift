@@ -136,6 +136,7 @@ extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        searchPlaceViewModel.fetchCoordinates(placeId: placePredictions[indexPath.row].placeId)
         delegate?.goToNextPage()
     }
 }

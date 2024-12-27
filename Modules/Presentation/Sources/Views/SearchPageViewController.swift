@@ -63,7 +63,12 @@ class SearchPageViewController: UIViewController {
         let searchPlaceService = SearchPlaceServiceImplementaion()
         let searchPlaceRepository = SearchPlaceRepositoryImplementation(searchPlacetService: searchPlaceService)
         let searchPlaceUseCase = SearchPlaceUseCase(searchPlaceRepository: searchPlaceRepository)
-        let searchPlaceViewModel = SearchPlaceViewModel(searchPlaceUseCase: searchPlaceUseCase)
+        
+        let fetchCoordinatesService = FetchCoordinatesServiceImplementaion()
+        let fetchCoordinatesRepository = FetchCoordinatesRepositoryImplementation(fetchCoordinatesService: fetchCoordinatesService)
+        let fetchCoordinatesUseCase = FetchCoordinatesUseCase(fetchCoordinatesRepository: fetchCoordinatesRepository)
+        
+        let searchPlaceViewModel = SearchPlaceViewModel(searchPlaceUseCase: searchPlaceUseCase, fetchCoordinatesUseCase: fetchCoordinatesUseCase)
         let searchPlaceViewController = SearchPlaceViewController(searchPlaceViewModel: searchPlaceViewModel)
         searchPlaceViewController.delegate = self
         return searchPlaceViewController
