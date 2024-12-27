@@ -19,7 +19,7 @@ public enum LocationServiceError: LocalizedError {
         case .permissionRestricted:
             return "위치 서비스 사용이 제한되었습니다. 관리자에게 문의해주세요."
         case .unknownError:
-            return "위치 정ㅂ보를 가져오는데 실패했습니다."
+            return "위치 정보를 가져오는데 실패했습니다."
         }
     }
 }
