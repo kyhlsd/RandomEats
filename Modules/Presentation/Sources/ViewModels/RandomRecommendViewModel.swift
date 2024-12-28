@@ -10,6 +10,10 @@ import Combine
 import Domain
 import Data
 
+protocol RandomRecommendViewModelDelegate: AnyObject {
+    func setAddressWithSearchedResult(searchedAddress: String)
+}
+
 public class RandomRecommendViewModel {
     let locationViewModel: LocationViewModel
     private let reverseGeocodingViewModel: ReverseGeocodingViewModel
@@ -22,7 +26,6 @@ public class RandomRecommendViewModel {
     @Published public var photoURL: URL?
     @Published public var isFetching = false
     
-    private var currentLocation: Location?
     var isConditionChanged = true
     var maximumDistance = 300
     let allowedValues: [Float] = [0.0, 0.25, 0.5, 0.75, 1.0]
@@ -41,8 +44,11 @@ public class RandomRecommendViewModel {
         locationViewModel.$location
             .compactMap { $0 }
             .sink { [weak self] location in
-                self?.currentLocation = location
-                self?.fetchAddress(for: location)
+                if let isAddressUpdateNeeded = self?.locationViewModel.isAddressUpdateNeeded, isAddressUpdateNeeded {
+                    self?.fetchAddress(for: location)
+                } else {
+                    self?.locationViewModel.isAddressUpdateNeeded = true
+                }
                 self?.isConditionChanged = true
             }
             .store(in: &cancellables)
@@ -140,7 +146,7 @@ public class RandomRecommendViewModel {
     
     // 위치, 경도 값으로 거리 계산 (Haversine 공식)
     func getDistanceBetween() -> Int {
-        guard let currentLocation = currentLocation, let destinationLocation = restaurantDetail?.geometry.location else {
+        guard let currentLocation = locationViewModel.location, let destinationLocation = restaurantDetail?.geometry.location else {
             print("Location is nil")
             return 0
         }
@@ -163,5 +169,11 @@ public class RandomRecommendViewModel {
         let distance = Int(earthRadius * c)
         
         return distance
+    }
+}
+
+extension RandomRecommendViewModel: RandomRecommendViewModelDelegate {
+    func setAddressWithSearchedResult(searchedAddress: String) {
+        currentAddress = searchedAddress
     }
 }

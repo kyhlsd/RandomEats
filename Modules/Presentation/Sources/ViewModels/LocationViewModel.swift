@@ -18,6 +18,8 @@ public class LocationViewModel {
     @Published var location: Location?
     @Published var errorMessage: String?
     
+    var isAddressUpdateNeeded = true
+    
     // UseCase 주입
     public init(locationUseCase: LocationUseCaseProtocol) {
         self.locationUseCase = locationUseCase
@@ -42,6 +44,7 @@ public class LocationViewModel {
 
 extension LocationViewModel: LocationViewModelDelegate {
     func setLocationWithSearchResult(searchedLocation: Location) {
+        isAddressUpdateNeeded = false
         location = searchedLocation
     }
 }

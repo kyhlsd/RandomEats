@@ -329,7 +329,8 @@ public class RandomRecommendViewController: UIViewController {
         
         searchButton.addAction(UIAction { [weak self] _ in
             let searchPageViewController = SearchPageViewController()
-            searchPageViewController.delegate = self?.randomRecommendViewModel.locationViewModel
+            searchPageViewController.locationViewModelDelegate = self?.randomRecommendViewModel.locationViewModel
+            searchPageViewController.randomRecommendViewModelDelegate = self?.randomRecommendViewModel
             self?.present(searchPageViewController, animated: true, completion: nil)
         }, for: .touchUpInside)
         

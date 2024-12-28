@@ -12,7 +12,7 @@ import Domain
 class SearchMapViewController: UIViewController {
     
     private var searchPlaceViewModel: SearchPlaceViewModel
-    weak var delegate: SearchPageNavigationDelegate?
+    weak var searchPageNavigationDelegate: SearchPageNavigationDelegate?
     
     init(searchPlaceViewModel: SearchPlaceViewModel) {
         self.searchPlaceViewModel = searchPlaceViewModel
@@ -222,8 +222,8 @@ class SearchMapViewController: UIViewController {
         }, for: .touchUpInside)
         
         setLocationButton.addAction(UIAction { [weak self] _ in
-            if let placeLocation = self?.searchPlaceViewModel.placeLocation {
-                self?.delegate?.dismissModal(with: placeLocation)
+            if let placeLocation = self?.searchPlaceViewModel.placeLocation, let placeName = self?.searchPlaceViewModel.selectedPrediction?.mainText {
+                self?.searchPageNavigationDelegate?.dismissModal(searchedLocation: placeLocation, searchedPlaceName: placeName)
             }
         }, for: .touchUpInside)
     }

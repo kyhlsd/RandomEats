@@ -12,11 +12,12 @@ import Data
 
 protocol SearchPageNavigationDelegate: AnyObject {
     func goToNextPage(with location: Location)
-    func dismissModal(with searchedLocation: Location)
+    func dismissModal(searchedLocation: Location, searchedPlaceName: String)
 }
 
 class SearchPageViewController: UIViewController {
-    weak var delegate: LocationViewModelDelegate?
+    weak var locationViewModelDelegate: LocationViewModelDelegate?
+    weak var randomRecommendViewModelDelegate: RandomRecommendViewModelDelegate?
     private var pages = [UIViewController]()
     
     public init() {
@@ -79,7 +80,7 @@ class SearchPageViewController: UIViewController {
     }()
     private lazy var searchMapViewController: SearchMapViewController = {
         let searchMapViewController = SearchMapViewController(searchPlaceViewModel: searchPlaceViewModel)
-        searchMapViewController.delegate = self
+        searchMapViewController.searchPageNavigationDelegate = self
         return searchMapViewController
     }()
     
@@ -142,8 +143,9 @@ extension SearchPageViewController: SearchPageNavigationDelegate {
         }
     }
     
-    internal func dismissModal(with searchedLocation: Location) {
-        delegate?.setLocationWithSearchResult(searchedLocation: searchedLocation)
+    internal func dismissModal(searchedLocation: Location, searchedPlaceName: String) {
+        locationViewModelDelegate?.setLocationWithSearchResult(searchedLocation: searchedLocation)
+        randomRecommendViewModelDelegate?.setAddressWithSearchedResult(searchedAddress: searchedPlaceName)
         DispatchQueue.main.async {
             self.dismiss(animated: true)
         }
