@@ -114,9 +114,9 @@ class SearchMapViewController: UIViewController {
         
         setupUI()
         
-        centerMapOnLocation(location: placeLocation)
+        setButtonActions()
         
-        addAnnotation()
+        updateMapView()
         
     }
     
@@ -198,6 +198,23 @@ class SearchMapViewController: UIViewController {
             self.mapView.removeAnnotations(self.mapView.annotations)
             self.mapView.addAnnotation(annotation)
         }
+    }
+    
+    private func adjustZoom(by factor: Double) {
+        var region = mapView.region
+        region.span.latitudeDelta *= factor
+        region.span.longitudeDelta *= factor
+        mapView.setRegion(region, animated: true)
+    }
+    
+    private func setButtonActions() {
+        zoomInButton.addAction(UIAction { [weak self] _ in
+            self?.adjustZoom(by: 0.5)
+        }, for: .touchUpInside)
+        
+        zoomOutButton.addAction(UIAction { [weak self] _ in
+            self?.adjustZoom(by: 2.0)
+        }, for: .touchUpInside)
     }
     
     // 겹치는 부분 중복 테두리 방지를 위한 테두리 추가 함수
