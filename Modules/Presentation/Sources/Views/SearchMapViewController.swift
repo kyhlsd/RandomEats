@@ -12,6 +12,7 @@ import Domain
 class SearchMapViewController: UIViewController {
     
     private var searchPlaceViewModel: SearchPlaceViewModel
+    weak var delegate: SearchPageNavigationDelegate?
     
     init(searchPlaceViewModel: SearchPlaceViewModel) {
         self.searchPlaceViewModel = searchPlaceViewModel
@@ -218,6 +219,12 @@ class SearchMapViewController: UIViewController {
         
         zoomOutButton.addAction(UIAction { [weak self] _ in
             self?.adjustZoom(by: 2.0)
+        }, for: .touchUpInside)
+        
+        setLocationButton.addAction(UIAction { [weak self] _ in
+            if let placeLocation = self?.searchPlaceViewModel.placeLocation {
+                self?.delegate?.dismissModal(with: placeLocation)
+            }
         }, for: .touchUpInside)
     }
     

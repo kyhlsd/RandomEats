@@ -11,7 +11,7 @@ import Domain
 import Data
 
 public class RandomRecommendViewModel {
-    private let locationViewModel: LocationViewModel
+    let locationViewModel: LocationViewModel
     private let reverseGeocodingViewModel: ReverseGeocodingViewModel
     private let searchRestaurantViewModel: SearchRestaurantViewModel
     private var cancellables = Set<AnyCancellable>()

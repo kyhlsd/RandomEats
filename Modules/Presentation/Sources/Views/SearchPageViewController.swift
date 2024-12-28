@@ -12,10 +12,11 @@ import Data
 
 protocol SearchPageNavigationDelegate: AnyObject {
     func goToNextPage(with location: Location)
+    func dismissModal(with searchedLocation: Location)
 }
 
 class SearchPageViewController: UIViewController {
-    
+    weak var delegate: LocationViewModelDelegate?
     private var pages = [UIViewController]()
     
     public init() {
@@ -78,6 +79,7 @@ class SearchPageViewController: UIViewController {
     }()
     private lazy var searchMapViewController: SearchMapViewController = {
         let searchMapViewController = SearchMapViewController(searchPlaceViewModel: searchPlaceViewModel)
+        searchMapViewController.delegate = self
         return searchMapViewController
     }()
     
@@ -137,6 +139,13 @@ extension SearchPageViewController: SearchPageNavigationDelegate {
         DispatchQueue.main.async {
             self.pageViewController.setViewControllers([self.pages[0]], direction: .reverse, animated: true)
             self.backButton.isHidden = true
+        }
+    }
+    
+    internal func dismissModal(with searchedLocation: Location) {
+        delegate?.setLocationWithSearchResult(searchedLocation: searchedLocation)
+        DispatchQueue.main.async {
+            self.dismiss(animated: true)
         }
     }
 }

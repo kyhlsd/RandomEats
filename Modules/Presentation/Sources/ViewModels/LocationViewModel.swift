@@ -9,6 +9,10 @@ import Foundation
 import Combine
 import Domain
 
+protocol LocationViewModelDelegate: AnyObject {
+    func setLocationWithSearchResult(searchedLocation: Location)
+}
+
 public class LocationViewModel {
     private let locationUseCase: LocationUseCaseProtocol
     @Published var location: Location?
@@ -36,4 +40,8 @@ public class LocationViewModel {
     }
 }
 
-
+extension LocationViewModel: LocationViewModelDelegate {
+    func setLocationWithSearchResult(searchedLocation: Location) {
+        location = searchedLocation
+    }
+}
