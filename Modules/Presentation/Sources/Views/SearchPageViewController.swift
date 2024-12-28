@@ -11,7 +11,7 @@ import Domain
 import Data
 
 protocol SearchPageNavigationDelegate: AnyObject {
-    func goToNextPage(location: Location, placePrediction: PlacePrediction)
+    func goToNextPage(with location: Location)
 }
 
 class SearchPageViewController: UIViewController {
@@ -59,7 +59,7 @@ class SearchPageViewController: UIViewController {
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
         return pageViewController
     }()
-    private lazy var searchPlaceViewController: SearchPlaceViewController = {
+    private lazy var searchPlaceViewModel: SearchPlaceViewModel = {
         let searchPlaceService = SearchPlaceServiceImplementaion()
         let searchPlaceRepository = SearchPlaceRepositoryImplementation(searchPlacetService: searchPlaceService)
         let searchPlaceUseCase = SearchPlaceUseCase(searchPlaceRepository: searchPlaceRepository)
@@ -69,12 +69,15 @@ class SearchPageViewController: UIViewController {
         let fetchCoordinatesUseCase = FetchCoordinatesUseCase(fetchCoordinatesRepository: fetchCoordinatesRepository)
         
         let searchPlaceViewModel = SearchPlaceViewModel(searchPlaceUseCase: searchPlaceUseCase, fetchCoordinatesUseCase: fetchCoordinatesUseCase)
+        return searchPlaceViewModel
+    }()
+    private lazy var searchPlaceViewController: SearchPlaceViewController = {
         let searchPlaceViewController = SearchPlaceViewController(searchPlaceViewModel: searchPlaceViewModel)
         searchPlaceViewController.delegate = self
         return searchPlaceViewController
     }()
     private lazy var searchMapViewController: SearchMapViewController = {
-        let searchMapViewController = SearchMapViewController()
+        let searchMapViewController = SearchMapViewController(searchPlaceViewModel: searchPlaceViewModel)
         return searchMapViewController
     }()
     
@@ -122,13 +125,9 @@ class SearchPageViewController: UIViewController {
 
 extension SearchPageViewController: SearchPageNavigationDelegate {
     
-    internal func goToNextPage(location: Location, placePrediction: PlacePrediction) {
-        self.searchMapViewController.placeLocation = location
-        self.searchMapViewController.updateMapView()
-        self.searchMapViewController.placeNameString = placePrediction.mainText
-        self.searchMapViewController.placeAddressString = placePrediction.description
-        
+    internal func goToNextPage(with location: Location) {
         DispatchQueue.main.async {
+            self.searchMapViewController.updateMapView()
             self.pageViewController.setViewControllers([self.pages[1]], direction: .forward, animated: true)
             self.backButton.isHidden = false
         }

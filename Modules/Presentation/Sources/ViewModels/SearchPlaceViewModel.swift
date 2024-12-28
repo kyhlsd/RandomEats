@@ -15,6 +15,8 @@ public class SearchPlaceViewModel {
     private let fetchCoordinatesUseCase: FetchCoordinatesUseCaseProtocol
     private var cancellables = Set<AnyCancellable>()
     
+    var selectedPrediction: PlacePrediction?
+    
     @Published var placePredictions: [PlacePrediction]?
     @Published var placeLocation: Location?
     @Published var errorMessage: String?

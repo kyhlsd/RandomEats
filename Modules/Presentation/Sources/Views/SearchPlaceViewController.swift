@@ -12,7 +12,6 @@ import Domain
 class SearchPlaceViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
     private var placePredictions = [PlacePrediction]()
-    private var selectedPlacePrediction: PlacePrediction?
     private var pages: [UIPageViewController]
     weak var delegate: SearchPageNavigationDelegate?
     
@@ -94,8 +93,8 @@ class SearchPlaceViewController: UIViewController {
         
         searchPlaceViewModel.$placeLocation
             .sink { [weak self] placeLocation in
-                if let placeLocation = placeLocation, let selectedPlacePrediction = self?.selectedPlacePrediction {
-                    self?.delegate?.goToNextPage(location: placeLocation, placePrediction: selectedPlacePrediction)
+                if let placeLocation = placeLocation {
+                    self?.delegate?.goToNextPage(with: placeLocation)
                 }
             }
             .store(in: &cancellables)
@@ -145,7 +144,7 @@ extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        selectedPlacePrediction = placePredictions[indexPath.row]
+        searchPlaceViewModel.selectedPrediction = placePredictions[indexPath.row]
         searchPlaceViewModel.fetchCoordinates(placeId: placePredictions[indexPath.row].placeId)
     }
 }

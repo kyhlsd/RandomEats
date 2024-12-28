@@ -10,11 +10,11 @@ import MapKit
 import Domain
 
 class SearchMapViewController: UIViewController {
-    var placeLocation = Location(latitude: 37.574475, longitude: 126.988776)
-    var placeNameString = ""
-    var placeAddressString = ""
     
-    init() {
+    private var searchPlaceViewModel: SearchPlaceViewModel
+    
+    init(searchPlaceViewModel: SearchPlaceViewModel) {
+        self.searchPlaceViewModel = searchPlaceViewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -172,11 +172,13 @@ class SearchMapViewController: UIViewController {
     }
     
     func updateMapView() {
-        centerMapOnLocation(location: placeLocation)
-        addAnnotation()
-        DispatchQueue.main.async {
-            self.placeNameLabel.text = self.placeNameString
-            self.placeAddressLabel.text = self.placeAddressString
+        if let placeLocation = searchPlaceViewModel.placeLocation {
+            centerMapOnLocation(location: placeLocation)
+            addAnnotation()
+            DispatchQueue.main.async {
+                self.placeNameLabel.text = self.searchPlaceViewModel.selectedPrediction?.mainText
+                self.placeAddressLabel.text = self.searchPlaceViewModel.selectedPrediction?.description
+            }
         }
     }
     
@@ -192,11 +194,13 @@ class SearchMapViewController: UIViewController {
     }
     
     private func addAnnotation() {
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = CLLocationCoordinate2D(latitude: placeLocation.getLatitude(), longitude: placeLocation.getLongitude())
-        DispatchQueue.main.async {
-            self.mapView.removeAnnotations(self.mapView.annotations)
-            self.mapView.addAnnotation(annotation)
+        if let placeLocation = searchPlaceViewModel.placeLocation {
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = CLLocationCoordinate2D(latitude: placeLocation.getLatitude(), longitude: placeLocation.getLongitude())
+            DispatchQueue.main.async {
+                self.mapView.removeAnnotations(self.mapView.annotations)
+                self.mapView.addAnnotation(annotation)
+            }
         }
     }
     
