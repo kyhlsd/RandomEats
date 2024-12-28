@@ -11,6 +11,8 @@ import Domain
 
 class SearchMapViewController: UIViewController {
     var placeLocation = Location(latitude: 37.574475, longitude: 126.988776)
+    var placeNameString = ""
+    var placeAddressString = ""
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -53,6 +55,49 @@ class SearchMapViewController: UIViewController {
         userLocationButton.translatesAutoresizingMaskIntoConstraints = false
         return userLocationButton
     }()
+    private lazy var placeContainer: UIView = {
+        let placeContainer = UIView()
+        placeContainer.layer.cornerRadius = 10
+        placeContainer.layer.masksToBounds = true
+        placeContainer.layer.borderColor = UIColor.systemGray.cgColor
+        placeContainer.layer.borderWidth = 1
+        placeContainer.backgroundColor = .white
+        placeContainer.translatesAutoresizingMaskIntoConstraints = false
+        return placeContainer
+    }()
+    private lazy var placeNameLabel = {
+        let placeNameLabel = UILabel()
+        placeNameLabel.text = ""
+        placeNameLabel.textColor = .black
+        placeNameLabel.font = .systemFont(ofSize: 20, weight: .medium)
+        placeNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        return placeNameLabel
+    }()
+    private lazy var placeAddressLabel = {
+        let placeAddressLabel = UILabel()
+        placeAddressLabel.text = ""
+        placeAddressLabel.textColor = .systemGray
+        placeAddressLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        placeAddressLabel.numberOfLines = 2
+        placeAddressLabel.translatesAutoresizingMaskIntoConstraints = false
+        return placeAddressLabel
+    }()
+    private lazy var setLocationButton = {
+        var config = UIButton.Configuration.plain()
+        
+        var attributeContainer = AttributeContainer()
+        attributeContainer.font = UIFont.boldSystemFont(ofSize: 15)
+        config.attributedTitle = AttributedString("이곳으로 위치 설정하기", attributes: attributeContainer)
+        config.baseForegroundColor = .black
+        config.contentInsets = .init(top: 8, leading: 0, bottom: 8, trailing: 0)
+        
+        let setLocationButton = UIButton()
+        setLocationButton.configuration = config
+        setLocationButton.backgroundColor = UIColor(named: "SecondaryColor")
+        setLocationButton.layer.cornerRadius = 10
+        setLocationButton.translatesAutoresizingMaskIntoConstraints = false
+        return setLocationButton
+    }()
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -67,7 +112,6 @@ class SearchMapViewController: UIViewController {
         
         view.backgroundColor = UIColor(named: "BackgroundColor")
         
-        
         setupUI()
         
         centerMapOnLocation(location: placeLocation)
@@ -81,6 +125,10 @@ class SearchMapViewController: UIViewController {
         view.addSubview(zoomInButton)
         view.addSubview(zoomOutButton)
         view.addSubview(userLocationButton)
+        view.addSubview(placeContainer)
+        placeContainer.addSubview(placeNameLabel)
+        placeContainer.addSubview(placeAddressLabel)
+        placeContainer.addSubview(setLocationButton)
         
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
@@ -89,7 +137,7 @@ class SearchMapViewController: UIViewController {
             mapView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
             mapView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
             
-            userLocationButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -20),
+            userLocationButton.bottomAnchor.constraint(equalTo: placeContainer.topAnchor, constant: -20),
             userLocationButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20),
             userLocationButton.widthAnchor.constraint(equalToConstant: 28),
             userLocationButton.heightAnchor.constraint(equalToConstant: 28),
@@ -103,12 +151,33 @@ class SearchMapViewController: UIViewController {
             zoomInButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20),
             zoomInButton.widthAnchor.constraint(equalToConstant: 28),
             zoomInButton.heightAnchor.constraint(equalToConstant: 28),
+            
+            placeContainer.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -14),
+            placeContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            placeContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            
+            placeNameLabel.leadingAnchor.constraint(equalTo: placeContainer.leadingAnchor, constant: 10),
+            placeNameLabel.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -10),
+            placeNameLabel.topAnchor.constraint(equalTo: placeContainer.topAnchor, constant: 10),
+            
+            placeAddressLabel.leadingAnchor.constraint(equalTo: placeContainer.leadingAnchor, constant: 10),
+            placeAddressLabel.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -10),
+            placeAddressLabel.topAnchor.constraint(equalTo: placeNameLabel.bottomAnchor, constant: 6),
+            
+            setLocationButton.leadingAnchor.constraint(equalTo: placeContainer.leadingAnchor, constant: 10),
+            setLocationButton.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -10),
+            setLocationButton.topAnchor.constraint(equalTo: placeAddressLabel.bottomAnchor, constant: 20),
+            setLocationButton.bottomAnchor.constraint(equalTo: placeContainer.bottomAnchor, constant: -14),
         ])
     }
     
     func updateMapView() {
         centerMapOnLocation(location: placeLocation)
         addAnnotation()
+        DispatchQueue.main.async {
+            self.placeNameLabel.text = self.placeNameString
+            self.placeAddressLabel.text = self.placeAddressString
+        }
     }
     
     private func centerMapOnLocation(location: Location, regionRadius: CLLocationDistance = 500) {

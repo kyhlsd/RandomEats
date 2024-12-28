@@ -12,6 +12,7 @@ import Domain
 class SearchPlaceViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
     private var placePredictions = [PlacePrediction]()
+    private var selectedPlacePrediction: PlacePrediction?
     private var pages: [UIPageViewController]
     weak var delegate: SearchPageNavigationDelegate?
     
@@ -65,7 +66,7 @@ class SearchPlaceViewController: UIViewController {
         
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.register(SearchTableViewCell.self, forCellReuseIdentifier: "searchPlaceTableViewCell")
+        tableView.register(SearchPlaceTableViewCell.self, forCellReuseIdentifier: "searchPlaceTableViewCell")
     }
     
     private func bindSearchBar() {
@@ -93,8 +94,8 @@ class SearchPlaceViewController: UIViewController {
         
         searchPlaceViewModel.$placeLocation
             .sink { [weak self] placeLocation in
-                if let placeLocation = placeLocation {
-                    self?.delegate?.goToNextPage(with: placeLocation)
+                if let placeLocation = placeLocation, let selectedPlacePrediction = self?.selectedPlacePrediction {
+                    self?.delegate?.goToNextPage(location: placeLocation, placePrediction: selectedPlacePrediction)
                 }
             }
             .store(in: &cancellables)
@@ -134,7 +135,7 @@ extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "searchPlaceTableViewCell", for: indexPath) as? SearchTableViewCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "searchPlaceTableViewCell", for: indexPath) as? SearchPlaceTableViewCell else {
             return UITableViewCell()
         }
         cell.placeTitleLabel.text = placePredictions[indexPath.row].mainText
@@ -144,6 +145,7 @@ extension SearchPlaceViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        selectedPlacePrediction = placePredictions[indexPath.row]
         searchPlaceViewModel.fetchCoordinates(placeId: placePredictions[indexPath.row].placeId)
     }
 }

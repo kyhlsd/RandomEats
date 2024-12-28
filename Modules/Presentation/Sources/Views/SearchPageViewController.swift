@@ -11,7 +11,7 @@ import Domain
 import Data
 
 protocol SearchPageNavigationDelegate: AnyObject {
-    func goToNextPage(with location: Location)
+    func goToNextPage(location: Location, placePrediction: PlacePrediction)
 }
 
 class SearchPageViewController: UIViewController {
@@ -121,9 +121,12 @@ class SearchPageViewController: UIViewController {
 }
 
 extension SearchPageViewController: SearchPageNavigationDelegate {
-    internal func goToNextPage(with location: Location) {
+    
+    internal func goToNextPage(location: Location, placePrediction: PlacePrediction) {
         self.searchMapViewController.placeLocation = location
         self.searchMapViewController.updateMapView()
+        self.searchMapViewController.placeNameString = placePrediction.mainText
+        self.searchMapViewController.placeAddressString = placePrediction.description
         
         DispatchQueue.main.async {
             self.pageViewController.setViewControllers([self.pages[1]], direction: .forward, animated: true)
