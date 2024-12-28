@@ -6,7 +6,8 @@
 //
 
 import Foundation
+import Combine
 
 public protocol ReverseGeocodingRepositoryProtocol {
-    func getAddress(from latitude: Double, longitude: Double) async throws -> String
+    func getAddress(from latitude: Double, longitude: Double) -> AnyPublisher<String, any Error>
 }

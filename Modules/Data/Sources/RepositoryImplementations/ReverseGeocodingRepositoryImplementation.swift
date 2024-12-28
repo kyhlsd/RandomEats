@@ -5,6 +5,7 @@
 //  Created by 김영훈 on 12/9/24.
 //
 
+import Combine
 import Domain
 
 public class ReverseGeocodingRepositoryImplementation: ReverseGeocodingRepositoryProtocol {
@@ -14,7 +15,7 @@ public class ReverseGeocodingRepositoryImplementation: ReverseGeocodingRepositor
         self.reverseGeocodingService = reverseGeocodingService
     }
     
-    public func getAddress(from latitude: Double, longitude: Double) async throws -> String {
-        return try await reverseGeocodingService.fetchAddress(latitude: latitude, longitude: longitude)
+    public func getAddress(from latitude: Double, longitude: Double) -> AnyPublisher<String, any Error>  {
+        return reverseGeocodingService.fetchAddress(latitude: latitude, longitude: longitude)
     }
 }

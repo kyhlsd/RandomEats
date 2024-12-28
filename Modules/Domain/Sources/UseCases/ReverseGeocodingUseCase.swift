@@ -6,9 +6,10 @@
 //
 
 import Foundation
+import Combine
 
 public protocol ReverseGeocodingUseCaseProtocol {
-    func getReverseGeocodedAddress(latitude: Double, longitude: Double) async throws -> String
+    func getReverseGeocodedAddress(latitude: Double, longitude: Double) -> AnyPublisher<String, any Error>
 }
 
 public class ReverseGeocodingUseCase: ReverseGeocodingUseCaseProtocol {
@@ -18,7 +19,7 @@ public class ReverseGeocodingUseCase: ReverseGeocodingUseCaseProtocol {
         self.reverseGeocodingRepository = reverseGeocodingRepository
     }
     
-    public func getReverseGeocodedAddress(latitude: Double, longitude: Double) async throws -> String {
-        return try await reverseGeocodingRepository.getAddress(from: latitude, longitude: longitude)
+    public func getReverseGeocodedAddress(latitude: Double, longitude: Double) -> AnyPublisher<String, any Error> {
+        return reverseGeocodingRepository.getAddress(from: latitude, longitude: longitude)
     }
 }

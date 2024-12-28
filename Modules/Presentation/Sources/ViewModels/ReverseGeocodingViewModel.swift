@@ -11,6 +11,8 @@ import Domain
 
 public class ReverseGeocodingViewModel {
     private let reverseGeocodingUseCase: ReverseGeocodingUseCaseProtocol
+    private var cancellables = Set<AnyCancellable>()
+    
     @Published var address: String?
     @Published var errorMessage: String?
     
@@ -21,13 +23,18 @@ public class ReverseGeocodingViewModel {
     
     // 위도와 경도를 주소로 변환하는 함수
     func fetchAddress(for location: Location) {
-        Task {
-            do {
-                let fetchedAddress = try await reverseGeocodingUseCase.getReverseGeocodedAddress(latitude: location.getLatitude(), longitude: location.getLongitude())
-                self.address = fetchedAddress
-            } catch {
-                self.errorMessage = "Failed to fetch address: \(error)"
-            }
-        }
+        reverseGeocodingUseCase.getReverseGeocodedAddress(latitude: location.getLatitude(), longitude: location.getLongitude())
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    self?.errorMessage = "Failed to fetch address: \(error)"
+                case .finished:
+                    break
+                }
+            }, receiveValue: { [weak self] address in
+                self?.address = address
+            })
+            .store(in: &cancellables)
     }
 }
