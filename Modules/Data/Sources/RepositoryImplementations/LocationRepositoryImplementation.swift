@@ -6,6 +6,7 @@
 //
 
 import Domain
+import Combine
 
 public class LocationRepositoryImplementation: LocationRepositoryProtocol {
     private let locationService: LocationServiceProtocol
@@ -16,5 +17,13 @@ public class LocationRepositoryImplementation: LocationRepositoryProtocol {
 
     public func fetchCurrentLocation() async throws -> Location {
         return try await locationService.fetchCurrentLocation()
+    }
+    
+    public func fetchPreviousLocation() -> AnyPublisher<Location, any Error> {
+        return locationService.fetchPreviousLocation()
+    }
+    
+    public func updateCoreDataLocation(location: Location) {
+        locationService.updateCoreDataLocation(location: location)
     }
 }

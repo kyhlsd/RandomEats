@@ -7,13 +7,19 @@
 
 import CoreLocation
 import Domain
+import CoreData
+import Shared
+import Combine
 
 public class LocationServiceImplementation: NSObject, LocationServiceProtocol, CLLocationManagerDelegate {
     
     private let locationManager = CLLocationManager()
     private var continuation: CheckedContinuation<Location, Error>?
     
-    public override init() {
+    private var context: NSManagedObjectContext
+    
+    public init(context: NSManagedObjectContext = CoreDataManager.shared.context) {
+        self.context = context
         super.init()
         self.locationManager.delegate = self
     }
@@ -56,5 +62,41 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol, C
         continuation.resume(throwing: error)
         // 위치 업데이트가 실패했을 경우 더 이상 위치 업데이트를 받지 않도록 중지
         locationManager.stopUpdatingLocation()
+    }
+    
+    public func fetchPreviousLocation() -> AnyPublisher<Location, Error> {
+        let fetchRequest: NSFetchRequest<LocationEntity> = LocationEntity.fetchRequest()
+        
+        return Future { promise in
+            do {
+                let entities = try self.context.fetch(fetchRequest)
+                // 기본값 서울시청
+                let location = entities.map {
+                    Location(latitude: $0.latitude, longitude: $0.longitude)
+                }.first ?? Location(latitude: 37.5663, longitude: 126.9779)
+                promise(.success(location))
+            } catch {
+                promise(.failure(error))
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    public func updateCoreDataLocation(location: Location) {
+        let fetchRequest: NSFetchRequest<LocationEntity> = LocationEntity.fetchRequest()
+        do {
+            let results = try context.fetch(fetchRequest)
+            if let locationEntity = results.first {
+                locationEntity.latitude = location.getLatitude()
+                locationEntity.longitude = location.getLongitude()
+            } else {
+                let newLocationEntity = LocationEntity(context: context)
+                newLocationEntity.latitude = location.getLatitude()
+                newLocationEntity.longitude = location.getLongitude()
+            }
+            try context.save()
+        } catch {
+            print("Failed to update location: \(error)")
+        }
     }
 }

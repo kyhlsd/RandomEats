@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreData
 
 public struct Location: Decodable {
     let lat: Double
@@ -24,4 +25,3 @@ public struct Location: Decodable {
         return lng
     }
 }
-

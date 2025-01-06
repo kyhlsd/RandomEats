@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 public protocol LocationUseCaseProtocol {
     func getCurrentLocation() async throws -> Location
@@ -20,5 +21,13 @@ public class LocationUseCase: LocationUseCaseProtocol {
 
     public func getCurrentLocation() async throws -> Location {
         return try await locationRepository.fetchCurrentLocation()
+    }
+    
+    public func fetchPreviousLocation() -> AnyPublisher<Location, Error> {
+        return locationRepository.fetchPreviousLocation()
+    }
+    
+    public func updateCoreDataLocation(location: Location) {
+        locationRepository.updateCoreDataLocation(location: location)
     }
 }
