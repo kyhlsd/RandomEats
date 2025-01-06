@@ -47,6 +47,9 @@ public class RandomRecommendViewModel {
                 if let isAddressUpdateNeeded = self?.locationViewModel.isAddressUpdateNeeded, isAddressUpdateNeeded {
                     self?.fetchAddress(for: location)
                 } else {
+                    if let address = location.getAddress() {
+                        self?.fetchPreviousAddress(for: address)
+                    }
                     self?.locationViewModel.isAddressUpdateNeeded = true
                 }
                 self?.isConditionChanged = true
@@ -124,6 +127,11 @@ public class RandomRecommendViewModel {
     // ReverseGeocodingViewModel을 사용해 주소 변환
     private func fetchAddress(for location: Location) {
         reverseGeocodingViewModel.fetchAddress(for: location)
+    }
+    
+    // 기존 주소가 있는 경우 그대로 사용
+    private func fetchPreviousAddress(for address: String) {
+        reverseGeocodingViewModel.fetchPreviousAddress(for: address)
     }
     
     //주변 식당 정보 가져오기

@@ -37,4 +37,9 @@ public class ReverseGeocodingViewModel {
             })
             .store(in: &cancellables)
     }
+    
+    // 기존 주소가 있을 경우 그대로 사용
+    func fetchPreviousAddress(for address: String) {
+        self.address = address
+    }
 }

@@ -20,7 +20,7 @@ public class LocationViewModel {
     @Published var location: Location?
     @Published var errorMessage: String?
     
-    var isAddressUpdateNeeded = true
+    var isAddressUpdateNeeded = false
     
     // UseCase 주입
     public init(locationUseCase: LocationUseCaseProtocol) {

@@ -395,8 +395,6 @@ public class RandomRecommendViewController: UIViewController {
         randomRecommendViewModel.$currentAddress
             .sink { [weak self] address in
                 if let address = address {
-                    print("Current Address: \(address)")
-                    
                     DispatchQueue.main.async {
                         self?.placeLabel.text = address
                     }

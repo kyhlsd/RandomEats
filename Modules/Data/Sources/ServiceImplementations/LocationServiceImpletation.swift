@@ -72,8 +72,8 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol, C
                 let entities = try self.context.fetch(fetchRequest)
                 // 기본값 서울시청
                 let location = entities.map {
-                    Location(latitude: $0.latitude, longitude: $0.longitude)
-                }.first ?? Location(latitude: 37.5663, longitude: 126.9779)
+                    Location(latitude: $0.latitude, longitude: $0.longitude, address: $0.address)
+                }.first ?? Location(latitude: 37.5663, longitude: 126.9779, address: "서울 시청")
                 promise(.success(location))
             } catch {
                 promise(.failure(error))
@@ -89,10 +89,12 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol, C
             if let locationEntity = results.first {
                 locationEntity.latitude = location.getLatitude()
                 locationEntity.longitude = location.getLongitude()
+                locationEntity.address = location.getAddress()
             } else {
                 let newLocationEntity = LocationEntity(context: context)
                 newLocationEntity.latitude = location.getLatitude()
                 newLocationEntity.longitude = location.getLongitude()
+                newLocationEntity.address = location.getAddress()
             }
             try context.save()
         } catch {
