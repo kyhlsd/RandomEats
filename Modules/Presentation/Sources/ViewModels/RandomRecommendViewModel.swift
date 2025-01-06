@@ -20,7 +20,7 @@ public class RandomRecommendViewModel {
     private let searchRestaurantViewModel: SearchRestaurantViewModel
     private var cancellables = Set<AnyCancellable>()
     
-    @Published public var currentAddress: String?
+    @Published public var searchedAddress: String?
     @Published public var errorMessage: String?
     @Published public var restaurantDetail: PlaceDetail?
     @Published public var photoURL: URL?
@@ -50,6 +50,7 @@ public class RandomRecommendViewModel {
                     self?.locationViewModel.isAddressUpdateNeeded = true
                 }
                 self?.isConditionChanged = true
+                self?.locationViewModel.updateCoreDataLocation(location: location)
             }
             .store(in: &cancellables)
         
@@ -64,10 +65,10 @@ public class RandomRecommendViewModel {
         
         // 주소 변환 결과 바인딩
         reverseGeocodingViewModel.$address
+            .compactMap { $0 }
             .sink { [weak self] address in
-                if let address = address {
-                    self?.currentAddress = address
-                }
+                self?.searchedAddress = address
+                self?.reverseGeocodingViewModel.updateCoreDataAddress(address: address)
             }
             .store(in: &cancellables)
         
@@ -180,6 +181,7 @@ public class RandomRecommendViewModel {
 
 extension RandomRecommendViewModel: RandomRecommendViewModelDelegate {
     func setAddressWithSearchedResult(searchedAddress: String) {
-        currentAddress = searchedAddress
+        self.searchedAddress = searchedAddress
+        self.reverseGeocodingViewModel.updateCoreDataAddress(address: searchedAddress)
     }
 }

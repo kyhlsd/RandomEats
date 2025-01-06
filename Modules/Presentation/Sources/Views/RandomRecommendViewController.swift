@@ -392,7 +392,7 @@ public class RandomRecommendViewController: UIViewController {
     //MARK: 뷰모델 바인딩 함수
     private func bindViewModel() {
         // 주소 업데이트 바인딩
-        randomRecommendViewModel.$currentAddress
+        randomRecommendViewModel.$searchedAddress
             .sink { [weak self] address in
                 if let address = address {
                     DispatchQueue.main.async {
