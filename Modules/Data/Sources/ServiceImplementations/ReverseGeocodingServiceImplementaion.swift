@@ -9,13 +9,19 @@ import Foundation
 import Combine
 import Alamofire
 import Domain
+import Shared
+import CoreData
 
 public class ReverseGeocodingServiceImplementaion: ReverseGeocodingServiceProtocol {
     
-    public init() {}
+    private var context: NSManagedObjectContext
     
     private let baseURL = "https://maps.googleapis.com/maps/api/geocode/json?"
     private var cancellables = Set<AnyCancellable>()
+    
+    public init(context: NSManagedObjectContext = CoreDataManager.shared.context) {
+        self.context = context
+    }
     
     public func fetchAddress(latitude: Double, longitude: Double) -> AnyPublisher<String, any Error> {
         
@@ -53,5 +59,39 @@ public class ReverseGeocodingServiceImplementaion: ReverseGeocodingServiceProtoc
             return nil
         }
         return googlePlacesAPIKey
+    }
+    
+    public func fetchPreviousAddress() -> AnyPublisher<String, Error> {
+        let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
+        
+        return Future { promise in
+            do {
+                let entities = try self.context.fetch(fetchRequest)
+                // 기본값 서울시청
+                let address = entities.map {
+                    $0.address ?? "서울 시청"
+                }.first ?? "서울 시청"
+                promise(.success(address))
+            } catch {
+                promise(.failure(error))
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    public func updateCoreDataAddress(address: String) {
+        let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
+        do {
+            let results = try context.fetch(fetchRequest)
+            if let addressEntity = results.first {
+                addressEntity.address = address
+            } else {
+                let newAddressEntity = AddressEntity(context: context)
+                newAddressEntity.address = address
+            }
+            try context.save()
+        } catch {
+            print("Failed to update address: \(error)")
+        }
     }
 }

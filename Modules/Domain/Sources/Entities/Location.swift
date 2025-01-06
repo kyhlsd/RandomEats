@@ -11,12 +11,10 @@ import CoreData
 public struct Location: Decodable {
     let lat: Double
     let lng: Double
-    let address: String?
     
-    public init(latitude: Double, longitude: Double, address: String? = nil) {
+    public init(latitude: Double, longitude: Double) {
         self.lat = latitude
         self.lng = longitude
-        self.address = address
     }
     
     public func getLatitude() -> Double {
@@ -27,7 +25,4 @@ public struct Location: Decodable {
         return lng
     }
     
-    public func getAddress() -> String? {
-        return address
-    }
 }

@@ -38,8 +38,23 @@ public class ReverseGeocodingViewModel {
             .store(in: &cancellables)
     }
     
-    // 기존 주소가 있을 경우 그대로 사용
-    func fetchPreviousAddress(for address: String) {
-        self.address = address
+    func fetchPreviousAddress() {
+        reverseGeocodingUseCase.fetchPreviousAddress()
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    self?.errorMessage = "Failed to fetch previous address: \(error)"
+                case .finished:
+                    break
+                }
+            }, receiveValue: { [weak self] address in
+                self?.address = address
+            })
+            .store(in: &cancellables)
+    }
+    
+    func updateCoreDataAddress(address: String) {
+        reverseGeocodingUseCase.updateCoreDataAddress(address: address)
     }
 }

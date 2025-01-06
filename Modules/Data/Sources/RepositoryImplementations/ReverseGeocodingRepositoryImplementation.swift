@@ -15,7 +15,15 @@ public class ReverseGeocodingRepositoryImplementation: ReverseGeocodingRepositor
         self.reverseGeocodingService = reverseGeocodingService
     }
     
-    public func getAddress(from latitude: Double, longitude: Double) -> AnyPublisher<String, any Error>  {
+    public func fetchAddress(from latitude: Double, longitude: Double) -> AnyPublisher<String, any Error>  {
         return reverseGeocodingService.fetchAddress(latitude: latitude, longitude: longitude)
+    }
+    
+    public func fetchPreviousAddress() -> AnyPublisher<String, any Error> {
+        return reverseGeocodingService.fetchPreviousAddress()
+    }
+    
+    public func updateCoreDataAddress(address: String) {
+        return reverseGeocodingService.updateCoreDataAddress(address: address)
     }
 }

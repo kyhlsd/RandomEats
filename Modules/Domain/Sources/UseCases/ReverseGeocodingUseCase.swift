@@ -10,6 +10,8 @@ import Combine
 
 public protocol ReverseGeocodingUseCaseProtocol {
     func getReverseGeocodedAddress(latitude: Double, longitude: Double) -> AnyPublisher<String, any Error>
+    func fetchPreviousAddress() -> AnyPublisher<String, Error>
+    func updateCoreDataAddress(address: String)
 }
 
 public class ReverseGeocodingUseCase: ReverseGeocodingUseCaseProtocol {
@@ -20,6 +22,14 @@ public class ReverseGeocodingUseCase: ReverseGeocodingUseCaseProtocol {
     }
     
     public func getReverseGeocodedAddress(latitude: Double, longitude: Double) -> AnyPublisher<String, any Error> {
-        return reverseGeocodingRepository.getAddress(from: latitude, longitude: longitude)
+        return reverseGeocodingRepository.fetchAddress(from: latitude, longitude: longitude)
+    }
+    
+    public func fetchPreviousAddress() -> AnyPublisher<String, any Error> {
+        return reverseGeocodingRepository.fetchPreviousAddress()
+    }
+    
+    public func updateCoreDataAddress(address: String) {
+        return reverseGeocodingRepository.updateCoreDataAddress(address: address)
     }
 }

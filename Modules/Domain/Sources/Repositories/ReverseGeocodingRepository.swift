@@ -9,5 +9,7 @@ import Foundation
 import Combine
 
 public protocol ReverseGeocodingRepositoryProtocol {
-    func getAddress(from latitude: Double, longitude: Double) -> AnyPublisher<String, any Error>
+    func fetchAddress(from latitude: Double, longitude: Double) -> AnyPublisher<String, any Error>
+    func fetchPreviousAddress() -> AnyPublisher<String, Error>
+    func updateCoreDataAddress(address: String)
 }
