@@ -315,6 +315,8 @@ public class RandomRecommendViewController: UIViewController {
         
         bindViewModel()
         
+        self.randomRecommendViewModel.locationViewModel.fetchPreviousLocation()
+        
         setButtonActions()
         
         setupUI()

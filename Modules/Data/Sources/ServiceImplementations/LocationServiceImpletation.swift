@@ -7,8 +7,8 @@
 
 import CoreLocation
 import Domain
-import CoreData
 import Shared
+import CoreData
 import Combine
 
 public class LocationServiceImplementation: NSObject, LocationServiceProtocol, CLLocationManagerDelegate {

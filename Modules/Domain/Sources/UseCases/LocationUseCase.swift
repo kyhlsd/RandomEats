@@ -10,6 +10,8 @@ import Combine
 
 public protocol LocationUseCaseProtocol {
     func getCurrentLocation() async throws -> Location
+    func fetchPreviousLocation() -> AnyPublisher<Location, Error>
+    func updateCoreDataLocation(location: Location)
 }
 
 public class LocationUseCase: LocationUseCaseProtocol {

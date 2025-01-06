@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct ReverseGeocodingResponse: Decodable {
-    let results: [GeocodingResult]
+public struct ReverseGeocodingResponse: Decodable {
+    public let results: [GeocodingResult]
 }
 
-struct GeocodingResult: Decodable {
-    let formattedAddress: String
+public struct GeocodingResult: Decodable {
+    public let formattedAddress: String
 
     enum CodingKeys: String, CodingKey {
         case formattedAddress = "formatted_address"

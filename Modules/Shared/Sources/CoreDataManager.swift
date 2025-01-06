@@ -11,13 +11,19 @@ public class CoreDataManager {
     public static let shared = CoreDataManager()
     
     let persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "Location")
-        container.loadPersistentStores { _, error in
-            if let error = error {
-                
+        let modelName = "Model"
+            guard let modelURL = Bundle(for: CoreDataManager.self).url(forResource: modelName, withExtension: "momd"),
+                  let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
+                fatalError("Failed to locate Core Data model")
             }
-        }
-        return container
+
+            let container = NSPersistentContainer(name: modelName, managedObjectModel: managedObjectModel)
+            container.loadPersistentStores { _, error in
+                if let error = error {
+                    print("Failed to load persistent store: \(error)")
+                }
+            }
+            return container
     }()
     
     public var context: NSManagedObjectContext {

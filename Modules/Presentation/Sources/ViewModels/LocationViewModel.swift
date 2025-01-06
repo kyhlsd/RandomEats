@@ -15,6 +15,8 @@ protocol LocationViewModelDelegate: AnyObject {
 
 public class LocationViewModel {
     private let locationUseCase: LocationUseCaseProtocol
+    private var cancellables = Set<AnyCancellable>()
+    
     @Published var location: Location?
     @Published var errorMessage: String?
     
@@ -39,6 +41,26 @@ public class LocationViewModel {
                 self.errorMessage = "\(LocationServiceError.unknownError.errorDescription ?? "Failed to fetch location"): \(error)"
             }
         }
+    }
+    
+    func fetchPreviousLocation() {
+        locationUseCase.fetchPreviousLocation()
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    self?.errorMessage = "Failed to fetch previous location: \(error)"
+                case .finished:
+                    break
+                }
+            }, receiveValue: { [weak self] location in
+                self?.location = location
+            })
+            .store(in: &cancellables)
+    }
+    
+    func updateCoreDataLocation(location: Location) {
+        locationUseCase.updateCoreDataLocation(location: location)
     }
 }
 
