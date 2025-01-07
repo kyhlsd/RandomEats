@@ -20,17 +20,19 @@ public class RandomRecommendViewModel {
     private let searchRestaurantViewModel: SearchRestaurantViewModel
     private var cancellables = Set<AnyCancellable>()
     
-    @Published public var searchedAddress: String?
-    @Published public var errorMessage: String?
-    @Published public var restaurantDetail: PlaceDetail?
-    @Published public var photoURL: URL?
-    @Published public var isFetching = false
+    @Published var searchedAddress: String?
+    @Published var errorMessage: String?
+    @Published var restaurantDetail: PlaceDetail?
+    @Published var photoURL: URL?
+    @Published var isFetching = false
+    @Published var shouldShowEmptyContainer = false
     
     var isConditionChanged = true
     var maximumDistance = 300
     let allowedValues: [Float] = [0.0, 0.25, 0.5, 0.75, 1.0]
     let allowedDistances: [Int] = [100, 200, 300, 400, 500]
     private var restaurantIDs = [String]()
+    var initialStateForEmptyList = true
     
     public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, searchRestaurantViewModel: SearchRestaurantViewModel) {
         self.locationViewModel = locationViewModel
@@ -87,7 +89,11 @@ public class RandomRecommendViewModel {
                 if let restaurantIDs = restaurantIDs {
                     self?.restaurantIDs = restaurantIDs
                 }
-                self?.getRandomRestaurantDetail()
+                if let initialStateForEmptyList =  self?.initialStateForEmptyList, initialStateForEmptyList {
+                    self?.initialStateForEmptyList = false
+                } else {
+                    self?.getRandomRestaurantDetail()
+                }
             }
             .store(in: &cancellables)
         
@@ -144,6 +150,12 @@ public class RandomRecommendViewModel {
     
     // 식당 상세 정보 가져오기
     func getRandomRestaurantDetail() {
+        if restaurantIDs.isEmpty {
+            self.shouldShowEmptyContainer = true
+            return
+        } else {
+            self.shouldShowEmptyContainer = false
+        }
         guard let randomPickedId = restaurantIDs.randomElement() else {
             print("Random Pick Id 오류")
             return

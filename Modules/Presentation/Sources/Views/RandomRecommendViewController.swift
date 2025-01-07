@@ -175,12 +175,12 @@ public class RandomRecommendViewController: UIViewController {
         return restaurantNameLabel
     }()
     private lazy var restaurantImageView = {
-        let menuImageView = UIImageView()
-        menuImageView.image = UIImage(named: "SampleRestaurantImage")
-        menuImageView.layer.cornerRadius = 10
-        menuImageView.layer.masksToBounds = true
-        menuImageView.translatesAutoresizingMaskIntoConstraints = false
-        return menuImageView
+        let restaurantImageView = UIImageView()
+        restaurantImageView.image = UIImage(named: "SampleRestaurantImage")
+        restaurantImageView.layer.cornerRadius = 10
+        restaurantImageView.layer.masksToBounds = true
+        restaurantImageView.translatesAutoresizingMaskIntoConstraints = false
+        return restaurantImageView
     }()
     private lazy var noImageLabel = {
         let noImageLabel = UILabel()
@@ -305,6 +305,68 @@ public class RandomRecommendViewController: UIViewController {
         indicatorLabel.translatesAutoresizingMaskIntoConstraints = false
         return indicatorLabel
     }()
+    private lazy var emptyListContainer = {
+        let emptyListContainer = UIView()
+        emptyListContainer.layer.cornerRadius = 10
+        emptyListContainer.layer.masksToBounds = true
+        emptyListContainer.backgroundColor = UIColor(named: "PrimaryColor")
+        emptyListContainer.translatesAutoresizingMaskIntoConstraints = false
+        emptyListContainer.isHidden = true
+        return emptyListContainer
+    }()
+    private lazy var emptyListImageView = {
+        let photoImage = UIImage(systemName: "tray")?
+            .withTintColor(.gray, renderingMode: .alwaysOriginal)
+        let resizedImage = self.resizeImage(image: photoImage, to: CGSize(width: 100, height: 100))
+        let paddedImage = self.addPaddingToImage(image: resizedImage, paddingSize: 100, paddingColor: .white)
+        
+        let emptyListImageView = UIImageView()
+        emptyListImageView.image = paddedImage
+        emptyListImageView.layer.cornerRadius = 10
+        emptyListImageView.layer.masksToBounds = true
+        emptyListImageView.translatesAutoresizingMaskIntoConstraints = false
+        return emptyListImageView
+    }()
+    private lazy var noRestaurantLabel = {
+        let noRestaurantLabel = UILabel()
+        noRestaurantLabel.text = "No Restaurant around here"
+        noRestaurantLabel.textAlignment = .center
+        noRestaurantLabel.textColor = .gray
+        noRestaurantLabel.font = .systemFont(ofSize: 20, weight: .medium)
+        noRestaurantLabel.translatesAutoresizingMaskIntoConstraints = false
+        return noRestaurantLabel
+    }()
+    private lazy var emptyListLabel = {
+        let emptyListLabel = UILabel()
+        emptyListLabel.text = "주위 m 내에 등록된 식당이 없습니다.\n조건을 확인해주세요."
+        emptyListLabel.numberOfLines = 2
+        emptyListLabel.textAlignment = .center
+        emptyListLabel.textColor = .gray
+        emptyListLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        emptyListLabel.translatesAutoresizingMaskIntoConstraints = false
+        return emptyListLabel
+    }()
+    private lazy var emptyListAgainButton = {
+        var config = UIButton.Configuration.plain()
+        
+        var attributeContainer = AttributeContainer()
+        attributeContainer.font = UIFont.boldSystemFont(ofSize: 15)
+        config.attributedTitle = AttributedString("다시하기", attributes: attributeContainer)
+        config.baseForegroundColor = .white
+        config.image = UIImage(systemName: "arrow.clockwise")?.withConfiguration(
+            UIImage.SymbolConfiguration(pointSize: 10, weight: .semibold)
+        )
+        config.imagePlacement = .leading
+        config.imagePadding = 8
+        config.contentInsets = .init(top: 8, leading: 0, bottom: 8, trailing: 0)
+        
+        let emptyListAgainButton = UIButton()
+        emptyListAgainButton.configuration = config
+        emptyListAgainButton.backgroundColor = .black
+        emptyListAgainButton.layer.cornerRadius = 10
+        emptyListAgainButton.translatesAutoresizingMaskIntoConstraints = false
+        return emptyListAgainButton
+    }()
     
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -358,6 +420,15 @@ public class RandomRecommendViewController: UIViewController {
         
         directionsButton.addAction(UIAction { _ in
             print("길찾기")
+        }, for: .touchUpInside)
+        
+        emptyListAgainButton.addAction(UIAction { [weak self] _ in
+            guard let self = self else { return }
+            if self.randomRecommendViewModel.isConditionChanged {
+                self.randomRecommendViewModel.fetchNearbyRestaurants()
+            } else {
+                self.randomRecommendViewModel.getRandomRestaurantDetail()
+            }
         }, for: .touchUpInside)
     }
     
@@ -448,6 +519,7 @@ public class RandomRecommendViewController: UIViewController {
                 if isFetching {
                     self?.randomRecommendButton.isHidden = true
                     self?.restaurantContainer.isHidden = true
+                    self?.emptyListContainer.isHidden = true
                     self?.indicatorContainer.isHidden = false
                     self?.indicatorView.startAnimating()
                 } else {
@@ -455,8 +527,17 @@ public class RandomRecommendViewController: UIViewController {
                         self?.restaurantContainer.isHidden = false
                         self?.indicatorContainer.isHidden = true
                         self?.indicatorView.stopAnimating()
+                        self?.emptyListContainer.isHidden = true
                     }
                 }
+            }
+            .store(in: &cancellables)
+        
+        // shouldShowEmptyContainer 바인딩
+        randomRecommendViewModel.$shouldShowEmptyContainer
+            .filter { $0 }
+            .sink { [weak self] shouldShowEmptyContainer in
+                self?.showEmptyContainer()
             }
             .store(in: &cancellables)
         
@@ -505,6 +586,11 @@ public class RandomRecommendViewController: UIViewController {
         view.addSubview(indicatorContainer)
         indicatorContainer.addSubview(indicatorView)
         indicatorContainer.addSubview(indicatorLabel)
+        view.addSubview(emptyListContainer)
+        emptyListContainer.addSubview(emptyListImageView)
+        emptyListContainer.addSubview(noRestaurantLabel)
+        emptyListContainer.addSubview(emptyListLabel)
+        emptyListContainer.addSubview(emptyListAgainButton)
         
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
@@ -616,6 +702,26 @@ public class RandomRecommendViewController: UIViewController {
             
             indicatorLabel.centerXAnchor.constraint(equalTo: indicatorContainer.centerXAnchor),
             indicatorLabel.bottomAnchor.constraint(equalTo: indicatorContainer.bottomAnchor, constant: -20),
+            
+            emptyListContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            emptyListContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            emptyListContainer.topAnchor.constraint(equalTo: recommendRestaurantLabel.bottomAnchor, constant: 10),
+            
+            emptyListImageView.leadingAnchor.constraint(equalTo: emptyListContainer.leadingAnchor, constant: 20),
+            emptyListImageView.trailingAnchor.constraint(equalTo: emptyListContainer.trailingAnchor, constant: -20),
+            emptyListImageView.topAnchor.constraint(equalTo: emptyListContainer.topAnchor, constant: 20),
+            emptyListImageView.heightAnchor.constraint(equalToConstant: 200),
+            
+            noRestaurantLabel.centerXAnchor.constraint(equalTo: emptyListContainer.centerXAnchor),
+            noRestaurantLabel.bottomAnchor.constraint(equalTo: emptyListImageView.bottomAnchor, constant: -20),
+            
+            emptyListLabel.centerXAnchor.constraint(equalTo: emptyListContainer.centerXAnchor),
+            emptyListLabel.topAnchor.constraint(equalTo: emptyListImageView.bottomAnchor, constant: 12),
+            
+            emptyListAgainButton.topAnchor.constraint(equalTo: emptyListLabel.bottomAnchor, constant: 12),
+            emptyListAgainButton.bottomAnchor.constraint(equalTo: emptyListContainer.bottomAnchor, constant: -12),
+            emptyListAgainButton.leadingAnchor.constraint(equalTo: emptyListContainer.leadingAnchor, constant: 20),
+            emptyListAgainButton.trailingAnchor.constraint(equalTo: emptyListContainer.trailingAnchor, constant: -20),
         ])
     }
     
@@ -741,5 +847,17 @@ public class RandomRecommendViewController: UIViewController {
         UIGraphicsEndImageContext()
         
         return paddedImage
+    }
+    
+    // 식당 비었을 경우 표시
+    func showEmptyContainer() {
+        DispatchQueue.main.async {
+            self.randomRecommendButton.isHidden = true
+            self.restaurantContainer.isHidden = true
+            self.emptyListContainer.isHidden = false
+            self.indicatorContainer.isHidden = true
+            
+            self.emptyListLabel.text = "주위 \(self.randomRecommendViewModel.maximumDistance)m 안에 등록된 식당이 없습니다.\n조건을 확인해주세요."
+        }
     }
 }
