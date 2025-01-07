@@ -8,10 +8,12 @@
 import UIKit
 import MapKit
 import Domain
-import Combine
+
+protocol SearchMapViewControllerDelegate: AnyObject {
+    func centerMapBetweenLocations()
+}
 
 class SearchMapViewController: UIViewController {
-    private var cancellables = Set<AnyCancellable>()
     
     private var searchPlaceViewModel: SearchPlaceViewModel
     weak var searchPageNavigationDelegate: SearchPageNavigationDelegate?
@@ -225,10 +227,11 @@ class SearchMapViewController: UIViewController {
         
         userLocationButton.addAction(UIAction { [weak self] _ in
             DispatchQueue.main.async {
-                self?.mapView.showsUserLocation = true
+                self?.mapView.showsUserLocation.toggle()
+                if self?.mapView.showsUserLocation == true {
+                    self?.searchPlaceViewModel.fetchCurrentLocation()
+                }
             }
-            self?.bindViewModel()
-            self?.searchPlaceViewModel.fetchCurrentLocation()
         }, for: .touchUpInside)
         
         setLocationButton.addAction(UIAction { [weak self] _ in
@@ -236,18 +239,6 @@ class SearchMapViewController: UIViewController {
                 self?.searchPageNavigationDelegate?.dismissModal(searchedLocation: placeLocation, searchedPlaceName: placeName)
             }
         }, for: .touchUpInside)
-    }
-    
-    private func bindViewModel() {
-        searchPlaceViewModel.$currentLocation
-            .compactMap { $0 }
-            .sink { [weak self] _ in
-                // 현재 위치와 검색 위치 중간으로 지도 세팅
-                if let averageLocation = self?.searchPlaceViewModel.getAverageLocation(), let distance = self?.searchPlaceViewModel.getDistanceBetween() {
-                    self?.centerMapOnLocation(location: averageLocation, regionRadius: CLLocationDistance(Int(Double(distance) * 1.2)), animated: true)
-                }
-            }
-            .store(in: &cancellables)
     }
     
     // 겹치는 부분 중복 테두리 방지를 위한 테두리 추가 함수
@@ -309,4 +300,15 @@ extension SearchMapViewController: MKMapViewDelegate {
         
         return annotationView
         }
+}
+
+extension SearchMapViewController: SearchMapViewControllerDelegate {
+    func centerMapBetweenLocations() {
+        if mapView.showsUserLocation {
+            // 현재 위치와 검색 위치 중간으로 지도 세팅
+            if let averageLocation = searchPlaceViewModel.getAverageLocation(), let distance = searchPlaceViewModel.getDistanceBetween() {
+                centerMapOnLocation(location: averageLocation, regionRadius: CLLocationDistance(Int(Double(distance) * 1.2)), animated: true)
+            }
+        }
+    }
 }

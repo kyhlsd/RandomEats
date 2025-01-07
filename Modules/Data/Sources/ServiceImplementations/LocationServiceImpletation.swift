@@ -42,13 +42,13 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol {
             
             // 위치 업데이트 클로저 설정
             self.didUpdateLocationsClosure = { location in
-                print("closureSuccess")
+                self.locationManager.stopUpdatingLocation()
                 promise(.success(location))  // 위치가 업데이트되면 성공적으로 값을 반환
             }
             
             // 실패 클로저 설정
             self.didFailWithErrorClosure = { error in
-                print("closureFailure")
+                self.locationManager.stopUpdatingLocation()
                 promise(.failure(error))  // 오류가 발생하면 실패를 반환
             }
         }

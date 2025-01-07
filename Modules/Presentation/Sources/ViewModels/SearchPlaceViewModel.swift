@@ -18,6 +18,8 @@ public class SearchPlaceViewModel {
     private var cancellables = Set<AnyCancellable>()
     private let locationManager = CLLocationManager()
     
+    weak var delegate: SearchMapViewControllerDelegate?
+    
     var selectedPrediction: PlacePrediction?
     
     @Published var placePredictions: [PlacePrediction]?
@@ -91,15 +93,20 @@ public class SearchPlaceViewModel {
                 }
             }, receiveValue: { [weak self] location in
                 self?.currentLocation = location
+                self?.delegate?.centerMapBetweenLocations()
             })
             .store(in: &cancellables)
     }
     
     // 위치, 경도 값으로 거리 계산 (Haversine 공식)
-    func getDistanceBetween() -> Int {
-        guard let currentLocation = currentLocation, let destinationLocation = placeLocation else {
-            print("Location is nil")
-            return 0
+    func getDistanceBetween() -> Int? {
+        guard let currentLocation = currentLocation else {
+            print("currentLocation is nil")
+            return nil
+        }
+        guard let destinationLocation = placeLocation else {
+            print("placeLocation is nil")
+            return nil
         }
         
         let earthRadius = 6_371_000.0
@@ -124,8 +131,12 @@ public class SearchPlaceViewModel {
     
     // 평균 위도, 경도 구하기
     func getAverageLocation() -> Location? {
-        guard let currentLocation = currentLocation, let destinationLocation = placeLocation else {
-            print("Location is nil")
+        guard let currentLocation = currentLocation else {
+            print("currentLocation is nil")
+            return nil
+        }
+        guard let destinationLocation = placeLocation else {
+            print("placeLocation is nil")
             return nil
         }
         let averageLatitude = (currentLocation.getLatitude() + destinationLocation.getLatitude()) / 2

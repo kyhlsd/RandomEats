@@ -85,6 +85,7 @@ class SearchPageViewController: UIViewController {
     private lazy var searchMapViewController: SearchMapViewController = {
         let searchMapViewController = SearchMapViewController(searchPlaceViewModel: searchPlaceViewModel)
         searchMapViewController.searchPageNavigationDelegate = self
+        searchPlaceViewModel.delegate = searchMapViewController
         return searchMapViewController
     }()
     
