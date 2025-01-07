@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 public protocol LocationRepositoryProtocol {
-    func fetchCurrentLocation() async throws -> Location
+    func fetchCurrentLocation() -> AnyPublisher<Location, Error>
     func fetchPreviousLocation() -> AnyPublisher<Location, Error>
     func updateCoreDataLocation(location: Location)
 }

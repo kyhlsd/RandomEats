@@ -72,18 +72,27 @@ public class SearchPlaceViewModel {
     
     // 현재 위치를 가져오는 함수
     func fetchCurrentLocation() {
-        Task {
-            do {
-                let fetchedLocation = try await locationUseCase.getCurrentLocation()
-                self.currentLocation = fetchedLocation
-            } catch LocationServiceError.permissionDenied {
-                self.errorMessage = LocationServiceError.permissionDenied.errorDescription
-            } catch LocationServiceError.permissionRestricted {
-                self.errorMessage = LocationServiceError.permissionRestricted.errorDescription
-            } catch {
-                self.errorMessage = "\(LocationServiceError.unknownError.errorDescription ?? "Failed to fetch location"): \(error)"
-            }
-        }
+        locationUseCase.getCurrentLocation()
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    switch error {
+                    case LocationServiceError.permissionDenied:
+                        self?.errorMessage = LocationServiceError.permissionDenied.errorDescription
+                    case LocationServiceError.permissionRestricted:
+                        self?.errorMessage = LocationServiceError.permissionRestricted.errorDescription
+                    default:
+                        self?.errorMessage = LocationServiceError.unknownError.errorDescription
+                    }
+                    self?.errorMessage = "\(LocationServiceError.unknownError.errorDescription ?? "Failed to fetch location"): \(error)"
+                case .finished:
+                    break
+                }
+            }, receiveValue: { [weak self] location in
+                self?.currentLocation = location
+            })
+            .store(in: &cancellables)
     }
     
     // 위치, 경도 값으로 거리 계산 (Haversine 공식)

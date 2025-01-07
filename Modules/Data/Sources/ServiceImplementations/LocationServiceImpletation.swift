@@ -11,10 +11,11 @@ import Shared
 import CoreData
 import Combine
 
-public class LocationServiceImplementation: NSObject, LocationServiceProtocol, CLLocationManagerDelegate {
+public class LocationServiceImplementation: NSObject, LocationServiceProtocol {
     
     private let locationManager = CLLocationManager()
-    private var continuation: CheckedContinuation<Location, Error>?
+    private var didUpdateLocationsClosure: ((Location) -> Void)?
+    private var didFailWithErrorClosure: ((Error) -> Void)?
     
     private var context: NSManagedObjectContext
     
@@ -24,45 +25,34 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol, C
         self.locationManager.delegate = self
     }
     
-    public func fetchCurrentLocation() async throws -> Location {
-        return try await withCheckedThrowingContinuation { continuation in
+    public func fetchCurrentLocation() -> AnyPublisher<Location, Error> {
+        return Future { promise in
             self.locationManager.requestWhenInUseAuthorization()
-            let status = locationManager.authorizationStatus
+            let status = self.locationManager.authorizationStatus
             if status == .denied {
-                continuation.resume(throwing: LocationServiceError.permissionDenied)
+                promise(.failure(LocationServiceError.permissionDenied))
                 return
             } else if status == .restricted {
-                continuation.resume(throwing: LocationServiceError.permissionRestricted)
+                promise(.failure(LocationServiceError.permissionRestricted))
                 return
             }
             
-            self.continuation = continuation
-            locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-            locationManager.startUpdatingLocation()
+            self.locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+            self.locationManager.startUpdatingLocation()
+            
+            // 위치 업데이트 클로저 설정
+            self.didUpdateLocationsClosure = { location in
+                print("closureSuccess")
+                promise(.success(location))  // 위치가 업데이트되면 성공적으로 값을 반환
+            }
+            
+            // 실패 클로저 설정
+            self.didFailWithErrorClosure = { error in
+                print("closureFailure")
+                promise(.failure(error))  // 오류가 발생하면 실패를 반환
+            }
         }
-    }
-    
-    // CLLocationManagerDelegate 메서드 구현
-    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.first {
-            let locationModel = Location(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
-            // 위치 업데이트 시, continuation을 통해 값을 반환
-            continuation?.resume(returning: locationModel)
-            // 위치 업데이트가 완료되면 더 이상 위치 업데이트를 받지 않도록 중지
-            locationManager.stopUpdatingLocation()
-            continuation = nil
-        }
-    }
-    
-    public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        // 중복 호출 방지
-        guard let continuation = continuation else { return }
-        self.continuation = nil // 사용 후 nil로 처리
-        
-        // 오류가 발생하면 continuation을 통해 오류를 반환
-        continuation.resume(throwing: error)
-        // 위치 업데이트가 실패했을 경우 더 이상 위치 업데이트를 받지 않도록 중지
-        locationManager.stopUpdatingLocation()
+        .eraseToAnyPublisher()
     }
     
     public func fetchPreviousLocation() -> AnyPublisher<Location, Error> {
@@ -99,5 +89,19 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol, C
         } catch {
             print("Failed to update location: \(error)")
         }
+    }
+}
+
+extension LocationServiceImplementation: CLLocationManagerDelegate {
+    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.first {
+            let locationModel = Location(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
+            // 위치 업데이트 시, 클로저 호출
+            didUpdateLocationsClosure?(locationModel)
+        }
+    }
+    
+    public func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
+        didFailWithErrorClosure?(error)
     }
 }

@@ -15,8 +15,8 @@ public class LocationRepositoryImplementation: LocationRepositoryProtocol {
         self.locationService = locationService
     }
 
-    public func fetchCurrentLocation() async throws -> Location {
-        return try await locationService.fetchCurrentLocation()
+    public func fetchCurrentLocation() -> AnyPublisher<Location, Error> {
+        return locationService.fetchCurrentLocation()
     }
     
     public func fetchPreviousLocation() -> AnyPublisher<Location, any Error> {
