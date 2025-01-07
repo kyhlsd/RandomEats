@@ -8,8 +8,10 @@
 import UIKit
 import MapKit
 import Domain
+import Combine
 
 class SearchMapViewController: UIViewController {
+    private var cancellables = Set<AnyCancellable>()
     
     private var searchPlaceViewModel: SearchPlaceViewModel
     weak var searchPageNavigationDelegate: SearchPageNavigationDelegate?
@@ -183,14 +185,14 @@ class SearchMapViewController: UIViewController {
         }
     }
     
-    private func centerMapOnLocation(location: Location, regionRadius: CLLocationDistance = 500) {
+    private func centerMapOnLocation(location: Location, regionRadius: CLLocationDistance = 500, animated: Bool = false) {
         let coordinateRegion = MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: location.getLatitude(), longitude: location.getLongitude()),
             latitudinalMeters: regionRadius,
             longitudinalMeters: regionRadius
         )
         DispatchQueue.main.async {
-            self.mapView.setRegion(coordinateRegion, animated: false)
+            self.mapView.setRegion(coordinateRegion, animated: animated)
         }
     }
     
@@ -221,11 +223,31 @@ class SearchMapViewController: UIViewController {
             self?.adjustZoom(by: 2.0)
         }, for: .touchUpInside)
         
+        userLocationButton.addAction(UIAction { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.mapView.showsUserLocation = true
+            }
+            self?.bindViewModel()
+            self?.searchPlaceViewModel.fetchCurrentLocation()
+        }, for: .touchUpInside)
+        
         setLocationButton.addAction(UIAction { [weak self] _ in
             if let placeLocation = self?.searchPlaceViewModel.placeLocation, let placeName = self?.searchPlaceViewModel.selectedPrediction?.mainText {
                 self?.searchPageNavigationDelegate?.dismissModal(searchedLocation: placeLocation, searchedPlaceName: placeName)
             }
         }, for: .touchUpInside)
+    }
+    
+    private func bindViewModel() {
+        searchPlaceViewModel.$currentLocation
+            .compactMap { $0 }
+            .sink { [weak self] _ in
+                // 현재 위치와 검색 위치 중간으로 지도 세팅
+                if let averageLocation = self?.searchPlaceViewModel.getAverageLocation(), let distance = self?.searchPlaceViewModel.getDistanceBetween() {
+                    self?.centerMapOnLocation(location: averageLocation, regionRadius: CLLocationDistance(Int(Double(distance) * 1.2)), animated: true)
+                }
+            }
+            .store(in: &cancellables)
     }
     
     // 겹치는 부분 중복 테두리 방지를 위한 테두리 추가 함수
@@ -260,6 +282,7 @@ class SearchMapViewController: UIViewController {
 }
 
 extension SearchMapViewController: MKMapViewDelegate {
+    // Mappin
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         guard !(annotation is MKUserLocation) else {
             return nil

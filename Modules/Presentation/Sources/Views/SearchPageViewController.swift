@@ -62,6 +62,10 @@ class SearchPageViewController: UIViewController {
         return pageViewController
     }()
     private lazy var searchPlaceViewModel: SearchPlaceViewModel = {
+        let locationService = LocationServiceImplementation()
+        let locationRepository = LocationRepositoryImplementation(locationService: locationService)
+        let locationUseCase = LocationUseCase(locationRepository: locationRepository)
+        
         let searchPlaceService = SearchPlaceServiceImplementaion()
         let searchPlaceRepository = SearchPlaceRepositoryImplementation(searchPlacetService: searchPlaceService)
         let searchPlaceUseCase = SearchPlaceUseCase(searchPlaceRepository: searchPlaceRepository)
@@ -70,7 +74,7 @@ class SearchPageViewController: UIViewController {
         let fetchCoordinatesRepository = FetchCoordinatesRepositoryImplementation(fetchCoordinatesService: fetchCoordinatesService)
         let fetchCoordinatesUseCase = FetchCoordinatesUseCase(fetchCoordinatesRepository: fetchCoordinatesRepository)
         
-        let searchPlaceViewModel = SearchPlaceViewModel(searchPlaceUseCase: searchPlaceUseCase, fetchCoordinatesUseCase: fetchCoordinatesUseCase)
+        let searchPlaceViewModel = SearchPlaceViewModel(locationUseCase: locationUseCase, searchPlaceUseCase: searchPlaceUseCase, fetchCoordinatesUseCase: fetchCoordinatesUseCase)
         return searchPlaceViewModel
     }()
     private lazy var searchPlaceViewController: SearchPlaceViewController = {

@@ -50,6 +50,7 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol, C
             continuation?.resume(returning: locationModel)
             // 위치 업데이트가 완료되면 더 이상 위치 업데이트를 받지 않도록 중지
             locationManager.stopUpdatingLocation()
+            continuation = nil
         }
     }
     
