@@ -45,6 +45,41 @@ class DirectionViewController: UIViewController {
         mapView.translatesAutoresizingMaskIntoConstraints = false
         return mapView
     }()
+    private lazy var zoomInButton: UIButton = {
+        let zoomInButton = UIButton(type: .system)
+        zoomInButton.setImage(UIImage(systemName: "plus")?.withConfiguration(
+            UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)).withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
+        zoomInButton.backgroundColor = .white
+        zoomInButton.layer.borderColor = UIColor.systemGray.cgColor
+        zoomInButton.translatesAutoresizingMaskIntoConstraints = false
+        return zoomInButton
+    }()
+    private lazy var zoomOutButton: UIButton = {
+        let zoomOutButton = UIButton(type: .system)
+        zoomOutButton.setImage(UIImage(systemName: "minus")?.withConfiguration(
+            UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)).withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
+        zoomOutButton.backgroundColor = .white
+        zoomOutButton.layer.borderColor = UIColor.systemGray.cgColor
+        zoomOutButton.translatesAutoresizingMaskIntoConstraints = false
+        return zoomOutButton
+    }()
+    private lazy var userLocationButton: UIButton = {
+        let userLocationButton = UIButton(type: .system)
+        userLocationButton.setImage(UIImage(systemName: "location.fill")?.withConfiguration(
+            UIImage.SymbolConfiguration(pointSize: 12, weight: .medium)), for: .normal)
+        userLocationButton.backgroundColor = .white
+        userLocationButton.layer.borderColor = UIColor.systemGray.cgColor
+        userLocationButton.translatesAutoresizingMaskIntoConstraints = false
+        return userLocationButton
+    }()
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        addBorder(to: zoomInButton, edges: [.top, .left, .right, .bottom], color: .systemGray, width: 1)
+        addBorder(to: zoomOutButton, edges: [.bottom, .left, .right], color: .systemGray, width: 1)
+        addBorder(to: userLocationButton, edges: [.top, .left, .right, .bottom], color: .systemGray, width: 1)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,6 +92,8 @@ class DirectionViewController: UIViewController {
         
         setupUI()
         
+        setButtonActions()
+        
         fetchWalkingDirections(from: directionViewModel.originLocation, to: directionViewModel.destinationLocation)
         
         addAnnotation()
@@ -65,6 +102,9 @@ class DirectionViewController: UIViewController {
     private func setupUI() {
         view.addSubview(navigationBar)
         view.addSubview(mapView)
+        view.addSubview(zoomInButton)
+        view.addSubview(zoomOutButton)
+        view.addSubview(userLocationButton)
         
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
@@ -77,7 +117,47 @@ class DirectionViewController: UIViewController {
             mapView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
             mapView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
             
+            userLocationButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -20),
+            userLocationButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20),
+            userLocationButton.widthAnchor.constraint(equalToConstant: 28),
+            userLocationButton.heightAnchor.constraint(equalToConstant: 28),
+            
+            zoomOutButton.bottomAnchor.constraint(equalTo: userLocationButton.topAnchor, constant: -10),
+            zoomOutButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20),
+            zoomOutButton.widthAnchor.constraint(equalToConstant: 28),
+            zoomOutButton.heightAnchor.constraint(equalToConstant: 28),
+            
+            zoomInButton.bottomAnchor.constraint(equalTo: zoomOutButton.topAnchor),
+            zoomInButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20),
+            zoomInButton.widthAnchor.constraint(equalToConstant: 28),
+            zoomInButton.heightAnchor.constraint(equalToConstant: 28),
         ])
+    }
+    
+    private func adjustZoom(by factor: Double) {
+        var region = mapView.region
+        region.span.latitudeDelta *= factor
+        region.span.longitudeDelta *= factor
+        mapView.setRegion(region, animated: true)
+    }
+    
+    private func setButtonActions() {
+        zoomInButton.addAction(UIAction { [weak self] _ in
+            self?.adjustZoom(by: 0.5)
+        }, for: .touchUpInside)
+        
+        zoomOutButton.addAction(UIAction { [weak self] _ in
+            self?.adjustZoom(by: 2.0)
+        }, for: .touchUpInside)
+        
+        userLocationButton.addAction(UIAction { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.mapView.showsUserLocation.toggle()
+                if self?.mapView.showsUserLocation == true {
+//                    self?.searchPlaceViewModel.fetchCurrentLocation()
+                }
+            }
+        }, for: .touchUpInside)
     }
     
     private func fetchWalkingDirections(from origin: Location, to destination: Location) {
@@ -115,7 +195,7 @@ class DirectionViewController: UIViewController {
                 self.mapView.setVisibleMapRect(route.polyline.boundingMapRect, animated: true)
             }
             
-            centerMapOnLocation(location: directionViewModel.getAverageLocation(), regionRadius: CLLocationDistance(Int(Double(directionViewModel.getDistanceBetween()) * 1.2)), animated: true)
+            centerMapOnLocation(location: directionViewModel.getAverageLocation(), regionRadius: CLLocationDistance(Int(Double(directionViewModel.getDistanceBetween()) * 1.3)), animated: true)
         }
     }
     
@@ -131,11 +211,46 @@ class DirectionViewController: UIViewController {
     }
     
     private func addAnnotation() {
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = CLLocationCoordinate2D(latitude: directionViewModel.destinationLocation.getLatitude(), longitude: directionViewModel.destinationLocation.getLongitude())
+        let originAnnotation = CustomPlaceAnnotation(type: .origin)
+        originAnnotation.coordinate = CLLocationCoordinate2D(latitude: directionViewModel.originLocation.getLatitude(), longitude: directionViewModel.originLocation.getLongitude())
+        
+        let destinationAnnotation = CustomPlaceAnnotation(type: .destination)
+        destinationAnnotation.coordinate = CLLocationCoordinate2D(latitude: directionViewModel.destinationLocation.getLatitude(), longitude: directionViewModel.destinationLocation.getLongitude())
+        
         DispatchQueue.main.async {
             self.mapView.removeAnnotations(self.mapView.annotations)
-            self.mapView.addAnnotation(annotation)
+            self.mapView.addAnnotation(originAnnotation)
+            self.mapView.addAnnotation(destinationAnnotation)
+        }
+    }
+    
+    // 겹치는 부분 중복 테두리 방지를 위한 테두리 추가 함수
+    private func addBorder(to button: UIButton, edges: UIRectEdge, color: UIColor, width: CGFloat) {
+        DispatchQueue.main.async {
+            if edges.contains(.top) {
+                let topBorder = CALayer()
+                topBorder.backgroundColor = color.cgColor
+                topBorder.frame = CGRect(x: 0, y: 0, width: button.frame.width, height: width)
+                button.layer.addSublayer(topBorder)
+            }
+            if edges.contains(.bottom) {
+                let bottomBorder = CALayer()
+                bottomBorder.backgroundColor = color.cgColor
+                bottomBorder.frame = CGRect(x: 0, y: button.frame.height - width, width: button.frame.width, height: width)
+                button.layer.addSublayer(bottomBorder)
+            }
+            if edges.contains(.left) {
+                let leftBorder = CALayer()
+                leftBorder.backgroundColor = color.cgColor
+                leftBorder.frame = CGRect(x: 0, y: 0, width: width, height: button.frame.height)
+                button.layer.addSublayer(leftBorder)
+            }
+            if edges.contains(.right) {
+                let rightBorder = CALayer()
+                rightBorder.backgroundColor = color.cgColor
+                rightBorder.frame = CGRect(x: button.frame.width - width, y: 0, width: width, height: button.frame.height)
+                button.layer.addSublayer(rightBorder)
+            }
         }
     }
 }
@@ -143,7 +258,7 @@ class DirectionViewController: UIViewController {
 extension DirectionViewController: MKMapViewDelegate {
     // Mappin
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-        guard !(annotation is MKUserLocation) else {
+        guard let customAnnotation = annotation as? CustomPlaceAnnotation else {
             return nil
         }
         
@@ -158,13 +273,40 @@ extension DirectionViewController: MKMapViewDelegate {
             annotationView?.annotation = annotation
         }
         
-        if let image = UIImage(named: "mappinImage") {
-            let size = CGSize(width: 50, height: 50)
-            UIGraphicsBeginImageContext(size)
-            image.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
-            let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-            annotationView?.image = resizedImage
+        let customView = UIView(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
+        
+        switch customAnnotation.type {
+        case .origin:
+            if let image = UIImage(named: "mappinImage") {
+                let imageView = UIImageView(image: image)
+                imageView.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+                imageView.contentMode = .scaleAspectFit
+                customView.addSubview(imageView)
+            }
+            
+            let label = UILabel(frame: CGRect(x: 0, y: 10, width: 50, height: 20))
+            label.text = "출발"
+            label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+            label.textAlignment = .center
+            label.textColor = .black
+            customView.addSubview(label)
+        case .destination:
+            if let image = UIImage(named: "mappinImage") {
+                let imageView = UIImageView(image: image)
+                imageView.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+                imageView.contentMode = .scaleAspectFit
+                customView.addSubview(imageView)
+            }
+            
+            let label = UILabel(frame: CGRect(x: 0, y: 10, width: 50, height: 20))
+            label.text = "도착"
+            label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+            label.textAlignment = .center
+            label.textColor = .black
+            customView.addSubview(label)
         }
+
+        annotationView?.addSubview(customView)
         
         return annotationView
         }
