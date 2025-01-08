@@ -420,8 +420,13 @@ public class RandomRecommendViewController: UIViewController {
         
         directionsButton.addAction(UIAction { [weak self] _ in
             guard let originLocation = self?.randomRecommendViewModel.locationViewModel.location, let destinationLocation = self?.randomRecommendViewModel.restaurantDetail?.geometry.location else { return }
-            let directionViewModel = DirectionViewModel(originLocation: originLocation, destinationLocation: destinationLocation)
+            
+            let locationService = LocationServiceImplementation()
+            let locationRepository = LocationRepositoryImplementation(locationService: locationService)
+            let locationUseCase = LocationUseCase(locationRepository: locationRepository)
+            let directionViewModel = DirectionViewModel(originLocation: originLocation, destinationLocation: destinationLocation, locationUseCase: locationUseCase)
             let directionViewController = DirectionViewController(directionViewModel: directionViewModel)
+            directionViewModel.delegate = directionViewController
             self?.present(directionViewController, animated: true)
         }, for: .touchUpInside)
         

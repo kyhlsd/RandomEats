@@ -18,7 +18,7 @@ public class SearchPlaceViewModel {
     private var cancellables = Set<AnyCancellable>()
     private let locationManager = CLLocationManager()
     
-    weak var delegate: SearchMapViewControllerDelegate?
+    weak var delegate: CenterMapBetweenLocationsDelegate?
     
     var selectedPrediction: PlacePrediction?
     

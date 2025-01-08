@@ -86,10 +86,6 @@ class DirectionViewController: UIViewController {
 
         view.backgroundColor = UIColor(named: "BackgroundColor")
         
-        closeButton.addAction(UIAction { [weak self] _ in
-            self?.dismiss(animated: true)
-        }, for: .touchUpInside)
-        
         setupUI()
         
         setButtonActions()
@@ -142,6 +138,10 @@ class DirectionViewController: UIViewController {
     }
     
     private func setButtonActions() {
+        closeButton.addAction(UIAction { [weak self] _ in
+            self?.dismiss(animated: true)
+        }, for: .touchUpInside)
+        
         zoomInButton.addAction(UIAction { [weak self] _ in
             self?.adjustZoom(by: 0.5)
         }, for: .touchUpInside)
@@ -154,7 +154,7 @@ class DirectionViewController: UIViewController {
             DispatchQueue.main.async {
                 self?.mapView.showsUserLocation.toggle()
                 if self?.mapView.showsUserLocation == true {
-//                    self?.searchPlaceViewModel.fetchCurrentLocation()
+                    self?.directionViewModel.fetchCurrentLocation()
                 }
             }
         }, for: .touchUpInside)
@@ -320,4 +320,16 @@ extension DirectionViewController: MKMapViewDelegate {
             renderer.lineWidth = 4.0
             return renderer
         }
+}
+
+extension DirectionViewController: CenterMapBetweenLocationsDelegate {
+    func centerMapBetweenLocations() {
+        if mapView.showsUserLocation {
+            // 현재 위치, 출발 위치, 도착 위치 중간으로 지도 세팅
+            let averageLocation = directionViewModel.getAverageWithCurrentLocation()
+            let distance = directionViewModel.getDistanceWithCurrentLocation()
+            
+            centerMapOnLocation(location: averageLocation, regionRadius: CLLocationDistance(Int(Double(distance) * 1.2)), animated: true)
+        }
+    }
 }

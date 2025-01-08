@@ -9,7 +9,7 @@ import UIKit
 import MapKit
 import Domain
 
-protocol SearchMapViewControllerDelegate: AnyObject {
+protocol CenterMapBetweenLocationsDelegate: AnyObject {
     func centerMapBetweenLocations()
 }
 
@@ -302,7 +302,7 @@ extension SearchMapViewController: MKMapViewDelegate {
         }
 }
 
-extension SearchMapViewController: SearchMapViewControllerDelegate {
+extension SearchMapViewController: CenterMapBetweenLocationsDelegate {
     func centerMapBetweenLocations() {
         if mapView.showsUserLocation {
             // 현재 위치와 검색 위치 중간으로 지도 세팅
