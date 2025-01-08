@@ -273,36 +273,36 @@ extension DirectionViewController: MKMapViewDelegate {
             annotationView?.annotation = annotation
         }
         
-        let customView = UIView(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
+        let customView = UIView(frame: CGRect(x: 0, y: 0, width: 52, height: 52))
         
         switch customAnnotation.type {
         case .origin:
-            if let image = UIImage(named: "mappinImage") {
+            if let image = UIImage(named: "mappinFilledBlue") {
                 let imageView = UIImageView(image: image)
-                imageView.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+                imageView.frame = CGRect(x: 0, y: 0, width: 52, height: 52)
                 imageView.contentMode = .scaleAspectFit
                 customView.addSubview(imageView)
             }
             
-            let label = UILabel(frame: CGRect(x: 0, y: 10, width: 50, height: 20))
+            let label = UILabel(frame: CGRect(x: 0, y: 10, width: 52, height: 20))
             label.text = "출발"
             label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
             label.textAlignment = .center
-            label.textColor = .black
+            label.textColor = .white
             customView.addSubview(label)
         case .destination:
-            if let image = UIImage(named: "mappinImage") {
+            if let image = UIImage(named: "mappinFilledGreen") {
                 let imageView = UIImageView(image: image)
-                imageView.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+                imageView.frame = CGRect(x: 0, y: 0, width: 52, height: 52)
                 imageView.contentMode = .scaleAspectFit
                 customView.addSubview(imageView)
             }
             
-            let label = UILabel(frame: CGRect(x: 0, y: 10, width: 50, height: 20))
+            let label = UILabel(frame: CGRect(x: 0, y: 10, width: 52, height: 20))
             label.text = "도착"
             label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
             label.textAlignment = .center
-            label.textColor = .black
+            label.textColor = .white
             customView.addSubview(label)
         }
 
