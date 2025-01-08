@@ -418,8 +418,11 @@ public class RandomRecommendViewController: UIViewController {
             }
         }, for: .touchUpInside)
         
-        directionsButton.addAction(UIAction { _ in
-            print("길찾기")
+        directionsButton.addAction(UIAction { [weak self] _ in
+            guard let originLocation = self?.randomRecommendViewModel.locationViewModel.location, let destinationLocation = self?.randomRecommendViewModel.restaurantDetail?.geometry.location else { return }
+            let directionViewModel = DirectionViewModel(originLocation: originLocation, destinationLocation: destinationLocation)
+            let directionViewController = DirectionViewController(directionViewModel: directionViewModel)
+            self?.present(directionViewController, animated: true)
         }, for: .touchUpInside)
         
         emptyListAgainButton.addAction(UIAction { [weak self] _ in
