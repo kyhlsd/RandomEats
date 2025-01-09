@@ -87,7 +87,6 @@ public class SearchPlaceViewModel {
                     default:
                         self?.errorMessage = LocationServiceError.unknownError.errorDescription
                     }
-                    self?.errorMessage = "\(LocationServiceError.unknownError.errorDescription ?? "Failed to fetch location"): \(error)"
                 case .finished:
                     break
                 }

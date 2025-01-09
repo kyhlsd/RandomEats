@@ -557,7 +557,10 @@ public class RandomRecommendViewController: UIViewController {
                     self.showPermissionDeniedAlert()
                 } else if errorMessage == LocationServiceError.permissionRestricted.errorDescription {
                     self.showPermissionRestrictedAlert()
-                } else {
+                } else if errorMessage == LocationServiceError.unknownError.errorDescription {
+                    self.showLocationUnknownErrorAlert()
+                }
+                else {
                     print("Error: \(errorMessage)")
                 }
             }

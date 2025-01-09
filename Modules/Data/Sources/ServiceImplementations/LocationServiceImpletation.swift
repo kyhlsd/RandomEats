@@ -18,6 +18,8 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol {
     private var didFailWithErrorClosure: ((Error) -> Void)?
     
     private var context: NSManagedObjectContext
+    private var cancellables = Set<AnyCancellable>()
+    private var authorizationSubject = PassthroughSubject<CLAuthorizationStatus, Error>()
     
     public init(context: NSManagedObjectContext = CoreDataManager.shared.context) {
         self.context = context
@@ -26,30 +28,53 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol {
     }
     
     public func fetchCurrentLocation() -> AnyPublisher<Location, Error> {
-        return Future { promise in
-            self.locationManager.requestWhenInUseAuthorization()
-            let status = self.locationManager.authorizationStatus
-            if status == .denied {
-                promise(.failure(LocationServiceError.permissionDenied))
-                return
-            } else if status == .restricted {
-                promise(.failure(LocationServiceError.permissionRestricted))
-                return
+        return requestAuthorization()
+            .flatMap { [weak self] status -> AnyPublisher<Location, Error> in
+                guard let self = self else {
+                    return Fail(error: LocationServiceError.unknownError).eraseToAnyPublisher()
+                }
+                
+                switch status {
+                case .denied:
+                    return Fail(error: LocationServiceError.permissionDenied).eraseToAnyPublisher()
+                case .restricted:
+                    return Fail(error: LocationServiceError.permissionRestricted).eraseToAnyPublisher()
+                case .authorizedAlways, .authorizedWhenInUse:
+                    return self.startUpdatingLocation()
+                default:
+                    return Fail(error: LocationServiceError.unknownError).eraseToAnyPublisher()
+                }
             }
+            .eraseToAnyPublisher()
+    }
+    
+    private func requestAuthorization() -> AnyPublisher<CLAuthorizationStatus, Error> {
+        let status = locationManager.authorizationStatus
+        if status == .notDetermined {
+            self.locationManager.requestWhenInUseAuthorization()
+            return authorizationSubject.eraseToAnyPublisher()
+        } else {
+            return Just(status)
+                .setFailureType(to: Error.self)
+                .eraseToAnyPublisher()
+        }
+    }
+    
+    private func startUpdatingLocation() -> AnyPublisher<Location, Error> {
+        Future { [weak self] promise in
+            guard let self = self else { return }
             
             self.locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
             self.locationManager.startUpdatingLocation()
             
-            // 위치 업데이트 클로저 설정
             self.didUpdateLocationsClosure = { location in
                 self.locationManager.stopUpdatingLocation()
-                promise(.success(location))  // 위치가 업데이트되면 성공적으로 값을 반환
+                promise(.success(location))
             }
             
-            // 실패 클로저 설정
             self.didFailWithErrorClosure = { error in
                 self.locationManager.stopUpdatingLocation()
-                promise(.failure(error))  // 오류가 발생하면 실패를 반환
+                promise(.failure(error))
             }
         }
         .eraseToAnyPublisher()
@@ -93,6 +118,11 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol {
 }
 
 extension LocationServiceImplementation: CLLocationManagerDelegate {
+    public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        authorizationSubject.send(manager.authorizationStatus)
+        authorizationSubject.send(completion: .finished)
+    }
+    
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
             let locationModel = Location(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
@@ -101,7 +131,8 @@ extension LocationServiceImplementation: CLLocationManagerDelegate {
         }
     }
     
-    public func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
+    public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         didFailWithErrorClosure?(error)
     }
 }
+

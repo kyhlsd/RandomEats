@@ -8,9 +8,11 @@
 import UIKit
 import MapKit
 import Domain
+import Combine
 
 class DirectionViewController: UIViewController {
     private let directionViewModel: DirectionViewModel
+    private var cancellables = Set<AnyCancellable>()
     
     init(directionViewModel: DirectionViewModel) {
         self.directionViewModel = directionViewModel
@@ -90,6 +92,8 @@ class DirectionViewController: UIViewController {
         
         setButtonActions()
         
+        bindViewModel()
+        
         fetchWalkingDirections(from: directionViewModel.originLocation, to: directionViewModel.destinationLocation)
         
         addAnnotation()
@@ -158,6 +162,26 @@ class DirectionViewController: UIViewController {
                 }
             }
         }, for: .touchUpInside)
+    }
+    
+    private func bindViewModel() {
+        // 에러 메시지 바인딩
+        directionViewModel.$errorMessage
+            .sink { errorMessage in
+                if let errorMessage = errorMessage {
+                    if errorMessage == LocationServiceError.permissionDenied.errorDescription {
+                        self.showPermissionDeniedAlert()
+                    } else if errorMessage == LocationServiceError.permissionRestricted.errorDescription {
+                        self.showPermissionRestrictedAlert()
+                    } else if errorMessage == LocationServiceError.unknownError.errorDescription {
+                        self.showLocationUnknownErrorAlert()
+                    }
+                    else {
+                        print("Error: \(errorMessage)")
+                    }
+                }
+            }
+            .store(in: &cancellables)
     }
     
     private func fetchWalkingDirections(from origin: Location, to destination: Location) {
@@ -253,8 +277,58 @@ class DirectionViewController: UIViewController {
             }
         }
     }
+    //MARK: Alert 함수
+    private func showPermissionDeniedAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(
+                title: "위치 서비스 권한 필요",
+                message: self.directionViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "설정으로 이동", style: .default, handler: { _ in
+                if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsURL)
+                }
+            }))
+            alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+            
+            self.present(alert, animated: true)
+        }
+    }
+    
+    private func showPermissionRestrictedAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let alert = UIAlertController(
+                title: "위치 서비스 권한 필요",
+                message: self.directionViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "확인", style: .default))
+            
+            self.present(alert, animated: true)
+        }
+    }
+    
+    private func showLocationUnknownErrorAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(
+                title: "위치 정보 가져오기 실패",
+                message: self.directionViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "닫기", style: .default))
+            
+            self.present(alert, animated: true)
+        }
+    }
 }
 
+//MARK: MapDelegate 함수
 extension DirectionViewController: MKMapViewDelegate {
     // Mappin
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
