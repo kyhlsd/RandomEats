@@ -17,13 +17,13 @@ public class RestaurantMapViewController: UIViewController {
         mapView.translatesAutoresizingMaskIntoConstraints = false
         return mapView
     }()
-    private lazy var placeContainer = {
-        let placeContainer = UIView()
-        placeContainer.layer.cornerRadius = 10
-        placeContainer.layer.masksToBounds = true
-        placeContainer.backgroundColor = UIColor(named: "SecondaryColor")
-        placeContainer.translatesAutoresizingMaskIntoConstraints = false
-        return placeContainer
+    private lazy var placeSettingContainer = {
+        let placeSettingContainer = UIView()
+        placeSettingContainer.layer.cornerRadius = 10
+        placeSettingContainer.layer.masksToBounds = true
+        placeSettingContainer.backgroundColor = UIColor(named: "SecondaryColor")
+        placeSettingContainer.translatesAutoresizingMaskIntoConstraints = false
+        return placeSettingContainer
     }()
     private lazy var placeSettingLabel = {
         let placeSettingLabel = UILabel()
@@ -122,6 +122,109 @@ public class RestaurantMapViewController: UIViewController {
         userLocationButton.translatesAutoresizingMaskIntoConstraints = false
         return userLocationButton
     }()
+    private lazy var placeContainer: UIView = {
+        let placeContainer = UIView()
+        placeContainer.layer.cornerRadius = 10
+        placeContainer.layer.masksToBounds = true
+        placeContainer.layer.borderColor = UIColor.systemGray.cgColor
+        placeContainer.layer.borderWidth = 1
+        placeContainer.backgroundColor = .white
+        placeContainer.translatesAutoresizingMaskIntoConstraints = false
+        return placeContainer
+    }()
+    private lazy var placeImageView = {
+        let placeImageView = UIImageView()
+        placeImageView.image = UIImage(named: "SampleRestaurantImage")
+        placeImageView.layer.cornerRadius = 10
+        placeImageView.clipsToBounds = true
+        placeImageView.translatesAutoresizingMaskIntoConstraints = false
+        return placeImageView
+    }()
+    private lazy var placeNameLabel = {
+        let placeNameLabel = UILabel()
+        placeNameLabel.text = "스톤504"
+        placeNameLabel.textColor = .black
+        placeNameLabel.font = .systemFont(ofSize: 18, weight: .semibold)
+        placeNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        return placeNameLabel
+    }()
+    private lazy var noImageLabel = {
+        let noImageLabel = UILabel()
+        noImageLabel.text = "No Image"
+        noImageLabel.textAlignment = .center
+        noImageLabel.textColor = .gray
+        noImageLabel.font = .systemFont(ofSize: 16, weight: .medium)
+        noImageLabel.translatesAutoresizingMaskIntoConstraints = false
+        noImageLabel.isHidden = true
+        return noImageLabel
+    }()
+    private lazy var ratingLabel = {
+        let ratingLabel = UILabel()
+        ratingLabel.text = "평점 : 4.1"
+        ratingLabel.textColor = .black
+        ratingLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        ratingLabel.translatesAutoresizingMaskIntoConstraints = false
+        return ratingLabel
+    }()
+    private lazy var ratingStack = {
+        let firstStar = UIImageView(image: UIImage(systemName: "star.fill"))
+        let secondStar = UIImageView(image: UIImage(systemName: "star.fill"))
+        let thirdStar = UIImageView(image: UIImage(systemName: "star.leadinghalf.filled"))
+        let fourthStar = UIImageView(image: UIImage(systemName: "star"))
+        let fifthStar = UIImageView(image: UIImage(systemName: "star"))
+        
+        [firstStar, secondStar, thirdStar, fourthStar, fifthStar].forEach { star in
+            star.tintColor = UIColor(named: "ContrastColor")
+                star.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    star.widthAnchor.constraint(equalToConstant: 14),
+                    star.heightAnchor.constraint(equalToConstant: 14)
+                ])
+            }
+        
+        let ratingStack = UIStackView(arrangedSubviews: [firstStar, secondStar, thirdStar, fourthStar, fifthStar])
+        ratingStack.axis = .horizontal
+        ratingStack.distribution = .equalSpacing
+        ratingStack.translatesAutoresizingMaskIntoConstraints = false
+       return ratingStack
+    }()
+    private lazy var restaurantDistanceLabel = {
+        let restaurantDistanceLabel = UILabel()
+        restaurantDistanceLabel.text = "거리 : 170 m"
+        restaurantDistanceLabel.textColor = .black
+        restaurantDistanceLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        restaurantDistanceLabel.translatesAutoresizingMaskIntoConstraints = false
+        return restaurantDistanceLabel
+    }()
+    private lazy var restaurantInfoButton = {
+        let restaurantInfoButton = UIButton()
+        restaurantInfoButton.setTitle("식당 정보 보기", for: .normal)
+        restaurantInfoButton.setTitleColor(.systemBlue, for: .normal)
+        restaurantInfoButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        restaurantInfoButton.translatesAutoresizingMaskIntoConstraints = false
+        return restaurantInfoButton
+    }()
+    private lazy var directionsButton = {
+        var config = UIButton.Configuration.plain()
+        
+        var attributeContainer = AttributeContainer()
+        attributeContainer.font = UIFont.boldSystemFont(ofSize: 15)
+        config.attributedTitle = AttributedString("길찾기", attributes: attributeContainer)
+        config.baseForegroundColor = .white
+        config.image = UIImage(systemName: "arrow.triangle.turn.up.right.diamond.fill")?.withConfiguration(
+            UIImage.SymbolConfiguration(pointSize: 12, weight: .medium)
+        )
+        config.imagePlacement = .leading
+        config.imagePadding = 8
+        config.contentInsets = .init(top: 8, leading: 0, bottom: 8, trailing: 0)
+        
+        let directionsButton = UIButton()
+        directionsButton.configuration = config
+        directionsButton.backgroundColor = .black
+        directionsButton.layer.cornerRadius = 10
+        directionsButton.translatesAutoresizingMaskIntoConstraints = false
+        return directionsButton
+    }()
     
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -141,11 +244,11 @@ public class RestaurantMapViewController: UIViewController {
     
     private func setupUI() {
         view.addSubview(mapView)
-        view.addSubview(placeContainer)
-        placeContainer.addSubview(placeSettingLabel)
-        placeContainer.addSubview(currentLocationButton)
-        placeContainer.addSubview(separatorLine)
-        placeContainer.addSubview(searchButton)
+        view.addSubview(placeSettingContainer)
+        placeSettingContainer.addSubview(placeSettingLabel)
+        placeSettingContainer.addSubview(currentLocationButton)
+        placeSettingContainer.addSubview(separatorLine)
+        placeSettingContainer.addSubview(searchButton)
         view.addSubview(distanceContainer)
         distanceContainer.addSubview(distanceSettingLabel)
         distanceContainer.addSubview(distanceLabel)
@@ -154,6 +257,15 @@ public class RestaurantMapViewController: UIViewController {
         view.addSubview(zoomInButton)
         view.addSubview(zoomOutButton)
         view.addSubview(userLocationButton)
+        view.addSubview(placeContainer)
+        placeContainer.addSubview(placeImageView)
+        placeContainer.addSubview(noImageLabel)
+        placeContainer.addSubview(placeNameLabel)
+        placeContainer.addSubview(ratingLabel)
+        placeContainer.addSubview(ratingStack)
+        placeContainer.addSubview(restaurantDistanceLabel)
+        placeContainer.addSubview(restaurantInfoButton)
+        placeContainer.addSubview(directionsButton)
         
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
@@ -162,13 +274,13 @@ public class RestaurantMapViewController: UIViewController {
             mapView.topAnchor.constraint(equalTo: safeArea.topAnchor),
             mapView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
             
-            placeContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
-            placeContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-            placeContainer.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 10),
+            placeSettingContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            placeSettingContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            placeSettingContainer.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 10),
             
-            placeSettingLabel.topAnchor.constraint(equalTo: placeContainer.topAnchor, constant: 6),
-            placeSettingLabel.bottomAnchor.constraint(equalTo: placeContainer.bottomAnchor, constant: -6),
-            placeSettingLabel.leadingAnchor.constraint(equalTo: placeContainer.leadingAnchor, constant: 15),
+            placeSettingLabel.topAnchor.constraint(equalTo: placeSettingContainer.topAnchor, constant: 6),
+            placeSettingLabel.bottomAnchor.constraint(equalTo: placeSettingContainer.bottomAnchor, constant: -6),
+            placeSettingLabel.leadingAnchor.constraint(equalTo: placeSettingContainer.leadingAnchor, constant: 15),
             
             currentLocationButton.topAnchor.constraint(equalTo: placeSettingLabel.topAnchor),
             currentLocationButton.bottomAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor),
@@ -181,12 +293,12 @@ public class RestaurantMapViewController: UIViewController {
             
             searchButton.topAnchor.constraint(equalTo: placeSettingLabel.topAnchor),
             searchButton.bottomAnchor.constraint(equalTo: placeSettingLabel.bottomAnchor),
-            searchButton.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -15),
+            searchButton.trailingAnchor.constraint(equalTo: placeSettingContainer.trailingAnchor, constant: -15),
             
             distanceContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             distanceContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-            distanceContainer.topAnchor.constraint(equalTo: placeContainer.bottomAnchor, constant: 4),
-            distanceContainer.heightAnchor.constraint(equalTo: placeContainer.heightAnchor),
+            distanceContainer.topAnchor.constraint(equalTo: placeSettingContainer.bottomAnchor, constant: 4),
+            distanceContainer.heightAnchor.constraint(equalTo: placeSettingContainer.heightAnchor),
             
             distanceSettingLabel.topAnchor.constraint(equalTo: distanceContainer.topAnchor, constant: 6),
             distanceSettingLabel.bottomAnchor.constraint(equalTo: distanceContainer.bottomAnchor, constant: -6),
@@ -206,6 +318,38 @@ public class RestaurantMapViewController: UIViewController {
             distancePlusButton.widthAnchor.constraint(equalToConstant: 22),
             distancePlusButton.trailingAnchor.constraint(equalTo: distanceContainer.trailingAnchor, constant: -12),
             
+            placeContainer.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -14),
+            placeContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+            placeContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
+            
+            placeImageView.leadingAnchor.constraint(equalTo: placeContainer.leadingAnchor, constant: 12),
+            placeImageView.topAnchor.constraint(equalTo: placeContainer.topAnchor, constant: 12),
+            placeImageView.bottomAnchor.constraint(equalTo: placeContainer.bottomAnchor, constant: -12),
+            placeImageView.heightAnchor.constraint(equalToConstant: 80),
+            placeImageView.widthAnchor.constraint(equalToConstant: 80),
+            
+            placeNameLabel.topAnchor.constraint(equalTo: placeImageView.topAnchor),
+            placeNameLabel.leadingAnchor.constraint(equalTo: placeImageView.trailingAnchor, constant: 12),
+            placeNameLabel.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -12),
+            
+            noImageLabel.centerXAnchor.constraint(equalTo: placeImageView.centerXAnchor),
+            noImageLabel.bottomAnchor.constraint(equalTo: placeImageView.bottomAnchor, constant: -15),
+            
+            ratingLabel.leadingAnchor.constraint(equalTo: placeNameLabel.leadingAnchor),
+            ratingLabel.topAnchor.constraint(equalTo: placeNameLabel.bottomAnchor, constant: 6),
+            
+            ratingStack.leadingAnchor.constraint(equalTo: ratingLabel.trailingAnchor, constant: 5),
+            ratingStack.centerYAnchor.constraint(equalTo: ratingLabel.centerYAnchor),
+            
+            restaurantDistanceLabel.leadingAnchor.constraint(equalTo: placeNameLabel.leadingAnchor),
+            restaurantDistanceLabel.topAnchor.constraint(equalTo: ratingLabel.bottomAnchor, constant: 4),
+            
+            restaurantInfoButton.leadingAnchor.constraint(equalTo: placeNameLabel.leadingAnchor),
+            restaurantInfoButton.topAnchor.constraint(equalTo: restaurantDistanceLabel.bottomAnchor, constant: -3),
+            
+            directionsButton.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -12),
+            directionsButton.widthAnchor.constraint(equalToConstant: 90),
+            directionsButton.centerYAnchor.constraint(equalTo: placeContainer.centerYAnchor),
         ])
     }
     
