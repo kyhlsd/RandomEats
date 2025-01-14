@@ -11,8 +11,9 @@ import Domain
 
 public class RestaurantMapViewController: UIViewController {
     private let allowedDistances = [100, 200, 300, 400, 500]
-    private let currentLocatioin = Location(latitude: 37.574475, longitude: 126.988776)
-    private let bestRestaurants = [PlaceDetail(name: "식당 이름", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.575, longitude: 126.989)), url: "https://www.google.com", rating: 4.1, user_ratings_total: 5, photos: nil)]
+    private let currentLocation = Location(latitude: 37.574475, longitude: 126.988776)
+    private var bestRestaurants = [PlaceDetail(name: "식당 이름", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.575, longitude: 126.989)), url: "https://www.google.com", rating: 4.1, user_ratings_total: 5, photos: nil), PlaceDetail(name: "식당 이름2", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.576, longitude: 126.99)), url: "https://www.google.com", rating: 4.3, user_ratings_total: 2, photos: nil)]
+    private var selectedRestaurantIndex: Int? = nil
     
     private lazy var mapView: MKMapView = {
         let mapView = MKMapView()
@@ -243,6 +244,8 @@ public class RestaurantMapViewController: UIViewController {
         view.backgroundColor = UIColor(named: "BackgroundColor")
         
         setupUI()
+        
+        updateMapView()
     }
     
     private func setupUI() {
@@ -371,6 +374,56 @@ public class RestaurantMapViewController: UIViewController {
         ])
     }
     
+    func updateMapView() {
+        centerMapOnLocation(location: currentLocation)
+        addAnnotation()
+    }
+    
+    private func centerMapOnLocation(location: Location, regionRadius: CLLocationDistance = 500, animated: Bool = false) {
+        let coordinateRegion = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: location.getLatitude(), longitude: location.getLongitude()),
+            latitudinalMeters: regionRadius,
+            longitudinalMeters: regionRadius
+        )
+        DispatchQueue.main.async {
+            self.mapView.setRegion(coordinateRegion, animated: animated)
+        }
+    }
+    
+    private func addAnnotation() {
+        DispatchQueue.main.async {
+            self.mapView.removeAnnotations(self.mapView.annotations)
+        }
+        for bestRestaurant in bestRestaurants {
+            let annotation = BestRestaurantAnnotation(type: .nonSelected)
+            annotation.coordinate = CLLocationCoordinate2D(latitude: bestRestaurant.geometry.location.getLatitude(), longitude: bestRestaurant.geometry.location.getLongitude())
+            DispatchQueue.main.async {
+                self.mapView.addAnnotation(annotation)
+            }
+        }
+    }
+    private func updateAnnotation() {
+        for annotation in mapView.annotations.compactMap({ $0 as? BestRestaurantAnnotation }) {
+            let newImage: UIImage?
+            let size = CGSize(width: 60, height: 60)
+            UIGraphicsBeginImageContext(size)
+            switch annotation.type {
+            case .selected:
+                newImage = UIImage(named: "selectedMappinImage")
+                newImage?.draw(in: CGRect(x: 0, y: 0, width: 60, height: 60))
+            case .nonSelected:
+                newImage = UIImage(named: "mappinImage")
+                newImage?.draw(in: CGRect(x: 0, y: 0, width: 44, height: 44))
+            }
+            let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+            if let annotationView = mapView.view(for: annotation) {
+                DispatchQueue.main.async {
+                    annotationView.image = resizedImage
+                }
+            }
+        }
+    }
+    
     // 겹치는 부분 중복 테두리 방지를 위한 테두리 추가 함수
     private func addBorder(to button: UIButton, edges: UIRectEdge, color: UIColor, width: CGFloat) {
         DispatchQueue.main.async {
@@ -406,11 +459,11 @@ public class RestaurantMapViewController: UIViewController {
 extension RestaurantMapViewController: MKMapViewDelegate {
     // Mappin
     public func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-        guard !(annotation is MKUserLocation) else {
+        guard let directionPlaceAnnotation = annotation as? BestRestaurantAnnotation else {
             return nil
         }
         
-        let identifier = "CustomAnnotation"
+        let identifier = "BestRestaurantAnnotation"
         var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
         
         if annotationView == nil {
@@ -421,14 +474,42 @@ extension RestaurantMapViewController: MKMapViewDelegate {
             annotationView?.annotation = annotation
         }
         
-        if let image = UIImage(named: "mappinImage") {
-            let size = CGSize(width: 50, height: 50)
-            UIGraphicsBeginImageContext(size)
-            image.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
-            let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-            annotationView?.image = resizedImage
+        var mappinImage: UIImage?
+        let size = CGSize(width: 60, height: 60)
+        UIGraphicsBeginImageContext(size)
+        switch directionPlaceAnnotation.type {
+        case .selected:
+            mappinImage = UIImage(named: "selectedMappinImage")
+            mappinImage?.draw(in: CGRect(x: 0, y: 0, width: 60, height: 60))
+        case .nonSelected:
+            mappinImage = UIImage(named: "mappinImage")
+            mappinImage?.draw(in: CGRect(x: 0, y: 0, width: 44, height: 44))
         }
         
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        annotationView?.image = resizedImage
+        
         return annotationView
+    }
+    public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotation) {
+        guard let selectedAnnotation = view as? BestRestaurantAnnotation else { return }
+        
+        if let selectedIndex = bestRestaurants.firstIndex(where: {
+            $0.geometry.location.getLatitude() == selectedAnnotation.coordinate.latitude &&
+            $0.geometry.location.getLongitude() == selectedAnnotation.coordinate.longitude
+        }) {
+            for annotation in mapView.annotations.compactMap({ $0 as? BestRestaurantAnnotation }) {
+                annotation.type = .nonSelected
+            }
+            if selectedRestaurantIndex == selectedIndex {
+                selectedRestaurantIndex = nil
+            } else {
+                selectedRestaurantIndex = selectedIndex
+                selectedAnnotation.type = .selected
+            }
         }
+        
+        updateAnnotation()
+        mapView.deselectAnnotation(selectedAnnotation, animated: false)
+    }
 }

@@ -235,10 +235,10 @@ class DirectionViewController: UIViewController {
     }
     
     private func addAnnotation() {
-        let originAnnotation = CustomPlaceAnnotation(type: .origin)
+        let originAnnotation = DirectionPlaceAnnotation(type: .origin)
         originAnnotation.coordinate = CLLocationCoordinate2D(latitude: directionViewModel.originLocation.getLatitude(), longitude: directionViewModel.originLocation.getLongitude())
         
-        let destinationAnnotation = CustomPlaceAnnotation(type: .destination)
+        let destinationAnnotation = DirectionPlaceAnnotation(type: .destination)
         destinationAnnotation.coordinate = CLLocationCoordinate2D(latitude: directionViewModel.destinationLocation.getLatitude(), longitude: directionViewModel.destinationLocation.getLongitude())
         
         DispatchQueue.main.async {
@@ -332,11 +332,11 @@ class DirectionViewController: UIViewController {
 extension DirectionViewController: MKMapViewDelegate {
     // Mappin
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-        guard let customAnnotation = annotation as? CustomPlaceAnnotation else {
+        guard let directionPlaceAnnotation = annotation as? DirectionPlaceAnnotation else {
             return nil
         }
         
-        let identifier = "CustomAnnotation"
+        let identifier = "DirectionPlaceAnnotation"
         var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
         
         if annotationView == nil {
@@ -349,7 +349,7 @@ extension DirectionViewController: MKMapViewDelegate {
         
         let customView = UIView(frame: CGRect(x: 0, y: 0, width: 52, height: 52))
         
-        switch customAnnotation.type {
+        switch directionPlaceAnnotation.type {
         case .origin:
             if let image = UIImage(named: "mappinFilledBlue") {
                 let imageView = UIImageView(image: image)

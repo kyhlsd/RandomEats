@@ -7,15 +7,28 @@
 
 import MapKit
 
-public class CustomPlaceAnnotation: MKPointAnnotation {
-    public let type: AnnotationType
+public class DirectionPlaceAnnotation: MKPointAnnotation {
+    public let type: DirectionPlaceAnnotationType
     
-    public init(type: AnnotationType) {
+    public init(type: DirectionPlaceAnnotationType) {
         self.type = type
     }
 }
 
-public enum AnnotationType {
+public enum DirectionPlaceAnnotationType {
     case origin
     case destination
+}
+
+public class BestRestaurantAnnotation: MKPointAnnotation {
+    public var type: BestRestaurantAnnotationType
+    
+    public init(type: BestRestaurantAnnotationType) {
+        self.type = type
+    }
+}
+
+public enum BestRestaurantAnnotationType {
+    case selected
+    case nonSelected
 }
