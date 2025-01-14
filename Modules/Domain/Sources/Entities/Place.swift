@@ -31,9 +31,22 @@ public struct PlaceDetail: Decodable {
     
     public struct Geometry: Decodable {
         public let location: Location
+        // api 연결 후 삭제
+        public init(location: Location) {
+            self.location = location
+        }
     }
     
     public struct Photo: Decodable {
         public let photo_reference: String
+    }
+    // api 연결 후 삭제
+    public init(name: String, geometry: Geometry, url: String, rating: Double?, user_ratings_total: Int?, photos: [Photo]?) {
+        self.name = name
+        self.geometry = geometry
+        self.url = url
+        self.rating = rating
+        self.user_ratings_total = user_ratings_total
+        self.photos = photos
     }
 }

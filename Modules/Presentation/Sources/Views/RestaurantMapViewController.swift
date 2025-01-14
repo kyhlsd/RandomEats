@@ -7,9 +7,12 @@
 
 import UIKit
 import MapKit
+import Domain
 
 public class RestaurantMapViewController: UIViewController {
     private let allowedDistances = [100, 200, 300, 400, 500]
+    private let currentLocatioin = Location(latitude: 37.574475, longitude: 126.988776)
+    private let bestRestaurants = [PlaceDetail(name: "식당 이름", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.575, longitude: 126.989)), url: "https://www.google.com", rating: 4.1, user_ratings_total: 5, photos: nil)]
     
     private lazy var mapView: MKMapView = {
         let mapView = MKMapView()
@@ -160,7 +163,7 @@ public class RestaurantMapViewController: UIViewController {
     }()
     private lazy var ratingLabel = {
         let ratingLabel = UILabel()
-        ratingLabel.text = "평점 : 4.1"
+        ratingLabel.text = "평점 : 4.1 (10)"
         ratingLabel.textColor = .black
         ratingLabel.font = .systemFont(ofSize: 13, weight: .medium)
         ratingLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -318,6 +321,21 @@ public class RestaurantMapViewController: UIViewController {
             distancePlusButton.widthAnchor.constraint(equalToConstant: 22),
             distancePlusButton.trailingAnchor.constraint(equalTo: distanceContainer.trailingAnchor, constant: -12),
             
+            userLocationButton.bottomAnchor.constraint(equalTo: placeContainer.topAnchor, constant: -20),
+            userLocationButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20),
+            userLocationButton.widthAnchor.constraint(equalToConstant: 28),
+            userLocationButton.heightAnchor.constraint(equalToConstant: 28),
+            
+            zoomOutButton.bottomAnchor.constraint(equalTo: userLocationButton.topAnchor, constant: -10),
+            zoomOutButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20),
+            zoomOutButton.widthAnchor.constraint(equalToConstant: 28),
+            zoomOutButton.heightAnchor.constraint(equalToConstant: 28),
+            
+            zoomInButton.bottomAnchor.constraint(equalTo: zoomOutButton.topAnchor),
+            zoomInButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20),
+            zoomInButton.widthAnchor.constraint(equalToConstant: 28),
+            zoomInButton.heightAnchor.constraint(equalToConstant: 28),
+            
             placeContainer.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -14),
             placeContainer.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             placeContainer.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
@@ -333,7 +351,7 @@ public class RestaurantMapViewController: UIViewController {
             placeNameLabel.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -12),
             
             noImageLabel.centerXAnchor.constraint(equalTo: placeImageView.centerXAnchor),
-            noImageLabel.bottomAnchor.constraint(equalTo: placeImageView.bottomAnchor, constant: -15),
+            noImageLabel.bottomAnchor.constraint(equalTo: placeImageView.bottomAnchor, constant: -6),
             
             ratingLabel.leadingAnchor.constraint(equalTo: placeNameLabel.leadingAnchor),
             ratingLabel.topAnchor.constraint(equalTo: placeNameLabel.bottomAnchor, constant: 6),
