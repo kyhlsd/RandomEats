@@ -431,7 +431,7 @@ public class RestaurantMapViewController: UIViewController {
     
     private func setButtonActions() {
         currentLocationButton.addAction(UIAction { [weak self] _ in
-            self?.restaurantMapViewModel.fetchCurrentLocationAndAddress()
+            self?.restaurantMapViewModel.fetchCurrentLocationAndAddressForSet()
         }, for: .touchUpInside)
         
         searchButton.addAction(UIAction { [weak self] _ in
@@ -456,15 +456,14 @@ public class RestaurantMapViewController: UIViewController {
             self?.adjustZoom(by: 2.0)
         }, for: .touchUpInside)
         
-        // TODO: 현재 위치 표기
-//        userLocationButton.addAction(UIAction { [weak self] _ in
-//            DispatchQueue.main.async {
-//                self?.mapView.showsUserLocation.toggle()
-//                if self?.mapView.showsUserLocation == true {
-//                    self?.searchPlaceViewModel.fetchCurrentLocation()
-//                }
-//            }
-//        }, for: .touchUpInside)
+        userLocationButton.addAction(UIAction { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.mapView.showsUserLocation.toggle()
+                if self?.mapView.showsUserLocation == true {
+                    self?.restaurantMapViewModel.fetchCurrentLocation()
+                }
+            }
+        }, for: .touchUpInside)
         
         directionsButton.addAction(UIAction { [weak self] _ in
             guard let selectedRestaurantIndex = self?.restaurantMapViewModel.selectedRestaurantIndex, let originLocation = self?.restaurantMapViewModel.setLocation, let destinationLocation = self?.restaurantMapViewModel.bestRestaurants[selectedRestaurantIndex].geometry.location else { return }
@@ -784,5 +783,16 @@ extension RestaurantMapViewController: MKMapViewDelegate {
         
         updateAnnotation()
         mapView.deselectAnnotation(selectedAnnotation, animated: false)
+    }
+}
+
+extension RestaurantMapViewController: CenterMapBetweenLocationsDelegate {
+    public func centerMapBetweenLocations() {
+        if mapView.showsUserLocation {
+            // 현재 위치와 설정된 위치의 중간으로 지도 세팅
+            if let averageLocation = restaurantMapViewModel.getAverageLocation(), let distance = restaurantMapViewModel.getDistanceBetween() {
+                centerMapOnLocation(location: averageLocation, regionRadius: CLLocationDistance(Int(Double(distance) * 1.2)), animated: true)
+            }
+        }
     }
 }

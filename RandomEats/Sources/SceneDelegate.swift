@@ -50,8 +50,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let firstViewController = RandomRecommendViewController(randomRecommendViewModel: randomRecommendViewModel)
         firstViewController.tabBarItem = UITabBarItem(title: "랜덤 추천", image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0)
         
-        let restaurantMapViewModel = RestaurantMapViewModel(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel)
+        let locationServiceForMap = LocationServiceImplementation()
+        let locationRepositoryForMap = LocationRepositoryImplementation(locationService: locationServiceForMap)
+        let locationUseCaseForMap = LocationUseCase(locationRepository: locationRepositoryForMap)
+        
+        let restaurantMapViewModel = RestaurantMapViewModel(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel, locationUseCase: locationUseCaseForMap)
         let secondViewController = RestaurantMapViewController(restaurantMapViewModel: restaurantMapViewModel)
+        restaurantMapViewModel.delegate = secondViewController
+        
         secondViewController.tabBarItem = UITabBarItem(title: "식당 지도", image: UIImage(systemName: "map"), tag: 1)
         setupTabBarController(with: [firstViewController, secondViewController])
     }

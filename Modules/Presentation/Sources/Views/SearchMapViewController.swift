@@ -10,7 +10,7 @@ import MapKit
 import Domain
 import Combine
 
-protocol CenterMapBetweenLocationsDelegate: AnyObject {
+public protocol CenterMapBetweenLocationsDelegate: AnyObject {
     func centerMapBetweenLocations()
 }
 
