@@ -126,6 +126,11 @@ public class RestaurantMapViewController: UIViewController {
         userLocationButton.translatesAutoresizingMaskIntoConstraints = false
         return userLocationButton
     }()
+    private lazy var userLocationButtonBottomConstraint: NSLayoutConstraint = {
+        let safeArea = view.safeAreaLayoutGuide
+        let userLocationButtonBottomConstraint = userLocationButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -20)
+        return userLocationButtonBottomConstraint
+    }()
     private lazy var placeContainer: UIView = {
         let placeContainer = UIView()
         placeContainer.layer.cornerRadius = 10
@@ -133,6 +138,7 @@ public class RestaurantMapViewController: UIViewController {
         placeContainer.layer.borderColor = UIColor.systemGray.cgColor
         placeContainer.layer.borderWidth = 1
         placeContainer.backgroundColor = .white
+        placeContainer.isHidden = true
         placeContainer.translatesAutoresizingMaskIntoConstraints = false
         return placeContainer
     }()
@@ -274,6 +280,7 @@ public class RestaurantMapViewController: UIViewController {
         placeContainer.addSubview(directionsButton)
         
         let safeArea = view.safeAreaLayoutGuide
+        userLocationButtonBottomConstraint = userLocationButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -20)
         NSLayoutConstraint.activate([
             mapView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
             mapView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
@@ -324,7 +331,7 @@ public class RestaurantMapViewController: UIViewController {
             distancePlusButton.widthAnchor.constraint(equalToConstant: 22),
             distancePlusButton.trailingAnchor.constraint(equalTo: distanceContainer.trailingAnchor, constant: -12),
             
-            userLocationButton.bottomAnchor.constraint(equalTo: placeContainer.topAnchor, constant: -20),
+            userLocationButtonBottomConstraint,
             userLocationButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20),
             userLocationButton.widthAnchor.constraint(equalToConstant: 28),
             userLocationButton.heightAnchor.constraint(equalToConstant: 28),
@@ -501,11 +508,28 @@ extension RestaurantMapViewController: MKMapViewDelegate {
             for annotation in mapView.annotations.compactMap({ $0 as? BestRestaurantAnnotation }) {
                 annotation.type = .nonSelected
             }
+            // 이미 어노테이션이 선택되어있을 경우 선택 해제
             if selectedRestaurantIndex == selectedIndex {
                 selectedRestaurantIndex = nil
+                let safeArea = self.view.safeAreaLayoutGuide
+                DispatchQueue.main.async {
+                    self.placeContainer.isHidden = true
+                    self.userLocationButtonBottomConstraint.isActive = false
+                    self.userLocationButtonBottomConstraint = self.userLocationButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -20)
+                    self.userLocationButtonBottomConstraint.isActive = true
+                    self.view.layoutIfNeeded()
+                }
             } else {
+                // 새로운ㅇ 어노테이션 선택 시
                 selectedRestaurantIndex = selectedIndex
                 selectedAnnotation.type = .selected
+                DispatchQueue.main.async {
+                    self.placeContainer.isHidden = false
+                    self.userLocationButtonBottomConstraint.isActive = false
+                    self.userLocationButtonBottomConstraint = self.userLocationButton.bottomAnchor.constraint(equalTo: self.placeContainer.topAnchor, constant: -20)
+                    self.userLocationButtonBottomConstraint.isActive = true
+                    self.view.layoutIfNeeded()
+                }
             }
         }
         
