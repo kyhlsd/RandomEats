@@ -394,7 +394,7 @@ public class RandomRecommendViewController: UIViewController {
         searchButton.addAction(UIAction { [weak self] _ in
             let searchPageViewController = SearchPageViewController()
             searchPageViewController.locationViewModelDelegate = self?.randomRecommendViewModel.locationViewModel
-            searchPageViewController.randomRecommendViewModelDelegate = self?.randomRecommendViewModel
+            searchPageViewController.setAddressWithSearchedResultDelegate = self?.randomRecommendViewModel
             self?.present(searchPageViewController, animated: true, completion: nil)
         }, for: .touchUpInside)
         
@@ -471,7 +471,7 @@ public class RandomRecommendViewController: UIViewController {
     //MARK: 뷰모델 바인딩 함수
     private func bindViewModel() {
         // 주소 업데이트 바인딩
-        randomRecommendViewModel.$searchedAddress
+        randomRecommendViewModel.reverseGeocodingViewModel.$address
             .sink { [weak self] address in
                 if let address = address {
                     DispatchQueue.main.async {

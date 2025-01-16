@@ -17,7 +17,7 @@ protocol SearchPageNavigationDelegate: AnyObject {
 
 class SearchPageViewController: UIViewController {
     weak var locationViewModelDelegate: LocationViewModelDelegate?
-    weak var randomRecommendViewModelDelegate: RandomRecommendViewModelDelegate?
+    weak var setAddressWithSearchedResultDelegate: SetAddressWithSearchedResultDelegate?
     private var pages = [UIViewController]()
     
     public init() {
@@ -150,7 +150,7 @@ extension SearchPageViewController: SearchPageNavigationDelegate {
     
     internal func dismissModal(searchedLocation: Location, searchedPlaceName: String) {
         locationViewModelDelegate?.setLocationWithSearchResult(searchedLocation: searchedLocation)
-        randomRecommendViewModelDelegate?.setAddressWithSearchedResult(searchedAddress: searchedPlaceName)
+        setAddressWithSearchedResultDelegate?.setAddressWithSearchedResult(searchedAddress: searchedPlaceName)
         DispatchQueue.main.async {
             self.dismiss(animated: true)
         }

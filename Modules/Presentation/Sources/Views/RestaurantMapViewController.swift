@@ -434,6 +434,13 @@ public class RestaurantMapViewController: UIViewController {
             self?.restaurantMapViewModel.fetchCurrentLocationAndAddress()
         }, for: .touchUpInside)
         
+        searchButton.addAction(UIAction { [weak self] _ in
+            let searchPageViewController = SearchPageViewController()
+            searchPageViewController.locationViewModelDelegate = self?.restaurantMapViewModel.locationViewModel
+            searchPageViewController.setAddressWithSearchedResultDelegate = self?.restaurantMapViewModel
+            self?.present(searchPageViewController, animated: true, completion: nil)
+        }, for: .touchUpInside)
+        
         restaurantInfoButton.addAction(UIAction { [weak self] _ in
             guard let selectedRestaurantIndex = self?.restaurantMapViewModel.selectedRestaurantIndex, let placeDetail = self?.restaurantMapViewModel.bestRestaurants[selectedRestaurantIndex] else { return }
             let webViewController = WebViewController(urlString: placeDetail.url)

@@ -21,9 +21,11 @@ public class RestaurantMapViewModel {
     @Published var errorMessage: String?
     
     let locationViewModel: LocationViewModel
+    private let reverseGeocodingViewModel: ReverseGeocodingViewModel
 
     public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel) {
         self.locationViewModel = locationViewModel
+        self.reverseGeocodingViewModel = reverseGeocodingViewModel
         bindViewModels()
     }
     
@@ -33,7 +35,6 @@ public class RestaurantMapViewModel {
             .compactMap { $0 }
             .sink { [weak self] location in
                 self?.setLocation = location
-                self?.locationViewModel.updateCoreDataLocation(location: location)
             }
             .store(in: &cancellables)
     }
@@ -43,4 +44,10 @@ public class RestaurantMapViewModel {
         locationViewModel.fetchCurrentLocation()
     }
     
+}
+
+extension RestaurantMapViewModel: SetAddressWithSearchedResultDelegate {
+    func setAddressWithSearchedResult(searchedAddress: String) {
+        self.reverseGeocodingViewModel.address = searchedAddress
+    }
 }

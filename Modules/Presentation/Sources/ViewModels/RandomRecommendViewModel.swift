@@ -10,17 +10,16 @@ import Combine
 import Domain
 import Data
 
-protocol RandomRecommendViewModelDelegate: AnyObject {
+protocol SetAddressWithSearchedResultDelegate: AnyObject {
     func setAddressWithSearchedResult(searchedAddress: String)
 }
 
 public class RandomRecommendViewModel {
     let locationViewModel: LocationViewModel
-    private let reverseGeocodingViewModel: ReverseGeocodingViewModel
+    let reverseGeocodingViewModel: ReverseGeocodingViewModel
     private let searchRestaurantViewModel: SearchRestaurantViewModel
     private var cancellables = Set<AnyCancellable>()
     
-    @Published var searchedAddress: String?
     @Published var errorMessage: String?
     @Published var restaurantDetail: PlaceDetail?
     @Published var photoURL: URL?
@@ -69,7 +68,6 @@ public class RandomRecommendViewModel {
         reverseGeocodingViewModel.$address
             .compactMap { $0 }
             .sink { [weak self] address in
-                self?.searchedAddress = address
                 self?.reverseGeocodingViewModel.updateCoreDataAddress(address: address)
             }
             .store(in: &cancellables)
@@ -191,9 +189,8 @@ public class RandomRecommendViewModel {
     }
 }
 
-extension RandomRecommendViewModel: RandomRecommendViewModelDelegate {
+extension RandomRecommendViewModel: SetAddressWithSearchedResultDelegate {
     func setAddressWithSearchedResult(searchedAddress: String) {
-        self.searchedAddress = searchedAddress
-        self.reverseGeocodingViewModel.updateCoreDataAddress(address: searchedAddress)
+        self.reverseGeocodingViewModel.address = searchedAddress
     }
 }
