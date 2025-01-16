@@ -217,7 +217,9 @@ class SearchMapViewController: UIViewController {
         var region = mapView.region
         region.span.latitudeDelta *= factor
         region.span.longitudeDelta *= factor
-        mapView.setRegion(region, animated: true)
+        DispatchQueue.main.async {
+            self.mapView.setRegion(region, animated: true)
+        }
     }
     
     private func setButtonActions() {

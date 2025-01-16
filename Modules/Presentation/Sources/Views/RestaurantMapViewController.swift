@@ -6,13 +6,15 @@
 //
 
 import UIKit
+import Kingfisher
 import MapKit
 import Domain
+import Data
 
 public class RestaurantMapViewController: UIViewController {
     private let allowedDistances = [100, 200, 300, 400, 500]
     private let currentLocation = Location(latitude: 37.574475, longitude: 126.988776)
-    private var bestRestaurants = [PlaceDetail(name: "식당 이름", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.575, longitude: 126.989)), url: "https://www.google.com", rating: 4.1, user_ratings_total: 5, photos: nil), PlaceDetail(name: "식당 이름2", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.576, longitude: 126.99)), url: "https://www.google.com", rating: 4.3, user_ratings_total: 2, photos: nil)]
+    private var bestRestaurants = [PlaceDetail(name: "식당 이름", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.575, longitude: 126.989)), url: "https://www.google.com", rating: 4.1, user_ratings_total: 5, photos: nil), PlaceDetail(name: "식당 이름2", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.576, longitude: 126.99)), url: "https://www.naver.com", rating: 4.3, user_ratings_total: 2, photos: nil)]
     private var selectedRestaurantIndex: Int? = nil
     
     private lazy var mapView: MKMapView = {
@@ -251,6 +253,8 @@ public class RestaurantMapViewController: UIViewController {
         
         setupUI()
         
+        setButtonActions()
+        
         updateMapView()
     }
     
@@ -381,7 +385,55 @@ public class RestaurantMapViewController: UIViewController {
         ])
     }
     
-    func updateMapView() {
+    private func setButtonActions() {
+        restaurantInfoButton.addAction(UIAction { [weak self] _ in
+            guard let selectedRestaurantIndex = self?.selectedRestaurantIndex, let placeDetail = self?.bestRestaurants[selectedRestaurantIndex] else { return }
+            let webViewController = WebViewController(urlString: placeDetail.url)
+            self?.present(webViewController, animated: true, completion: nil)
+            
+        }, for: .touchUpInside)
+        
+        zoomInButton.addAction(UIAction { [weak self] _ in
+            self?.adjustZoom(by: 0.5)
+        }, for: .touchUpInside)
+        
+        zoomOutButton.addAction(UIAction { [weak self] _ in
+            self?.adjustZoom(by: 2.0)
+        }, for: .touchUpInside)
+        
+        // TODO: 현재 위치 표기
+//        userLocationButton.addAction(UIAction { [weak self] _ in
+//            DispatchQueue.main.async {
+//                self?.mapView.showsUserLocation.toggle()
+//                if self?.mapView.showsUserLocation == true {
+//                    self?.searchPlaceViewModel.fetchCurrentLocation()
+//                }
+//            }
+//        }, for: .touchUpInside)
+        
+        directionsButton.addAction(UIAction { [weak self] _ in
+            guard let selectedRestaurantIndex = self?.selectedRestaurantIndex, let originLocation = self?.currentLocation, let destinationLocation = self?.bestRestaurants[selectedRestaurantIndex].geometry.location else { return }
+            
+            let locationService = LocationServiceImplementation()
+            let locationRepository = LocationRepositoryImplementation(locationService: locationService)
+            let locationUseCase = LocationUseCase(locationRepository: locationRepository)
+            let directionViewModel = DirectionViewModel(originLocation: originLocation, destinationLocation: destinationLocation, locationUseCase: locationUseCase)
+            let directionViewController = DirectionViewController(directionViewModel: directionViewModel)
+            directionViewModel.delegate = directionViewController
+            self?.present(directionViewController, animated: true)
+        }, for: .touchUpInside)
+    }
+    
+    private func adjustZoom(by factor: Double) {
+        var region = mapView.region
+        region.span.latitudeDelta *= factor
+        region.span.longitudeDelta *= factor
+        DispatchQueue.main.async {
+            self.mapView.setRegion(region, animated: true)
+        }
+    }
+    
+    private func updateMapView() {
         centerMapOnLocation(location: currentLocation)
         addAnnotation()
     }
@@ -430,6 +482,63 @@ public class RestaurantMapViewController: UIViewController {
             }
         }
     }
+    private func updatePlaceContainer() {
+        guard let selectedRestaurantIndex = selectedRestaurantIndex else { return }
+        let selectedPlaceDetail = bestRestaurants[selectedRestaurantIndex]
+        DispatchQueue.main.async {
+            self.placeNameLabel.text = selectedPlaceDetail.name
+            self.ratingLabel.text = "평점 : \(selectedPlaceDetail.rating ?? 0.0) (\(selectedPlaceDetail.user_ratings_total ?? 0))"
+            self.updateRatingStars(rating: selectedPlaceDetail.rating ?? 0.0)
+        }
+        
+        let photoImage = UIImage(systemName: "photo")?
+            .withTintColor(.gray, renderingMode: .alwaysOriginal)
+        let resizedImage = resizeImage(image: photoImage, to: CGSize(width: 80, height: 80))
+        let paddedImage = addPaddingToImage(image: resizedImage, paddingSize: 80, paddingColor: .white)
+        
+        // TODO: photo url 가져오기, 거리 가져오기
+//        if let photoURL =  {
+//            // 이미지 정보가 있는 식당일 경우
+//            DispatchQueue.main.async {
+//                self.placeImageView.kf.setImage(with: photoURL, placeholder: paddedImage, options: [
+//                    .cacheOriginalImage,
+//                ])
+//                self.noImageLabel.isHidden = true
+//            }
+//        } else {
+//            // 이미지 정보가 없는 식당일 경우
+//            DispatchQueue.main.async {
+//                self.placeImageView.image = paddedImage
+//                self.noImageLabel.isHidden = false
+//            }
+//        }
+    }
+    
+    //MARK: UI 보조 함수
+    // 식당 평점 별 UI 업데이트
+    private func updateRatingStars(rating: Double) {
+        let starStates: [String] = {
+            switch rating {
+            case ..<0.25: return ["star", "star", "star", "star", "star"]
+            case 0.25..<0.75: return ["star.leadinghalf.filled", "star", "star", "star", "star"]
+            case 0.75..<1.25: return ["star.fill", "star", "star", "star", "star"]
+            case 1.25..<1.75: return ["star.fill", "star.leadinghalf.filled", "star", "star", "star"]
+            case 1.75..<2.25: return ["star.fill", "star.fill", "star", "star", "star"]
+            case 2.25..<2.75: return ["star.fill", "star.fill", "star.leadinghalf.filled", "star", "star"]
+            case 2.75..<3.25: return ["star.fill", "star.fill", "star.fill", "star", "star"]
+            case 3.25..<3.75: return ["star.fill", "star.fill", "star.fill", "star.leadinghalf.filled", "star"]
+            case 3.75..<4.25: return ["star.fill", "star.fill", "star.fill", "star.fill", "star"]
+            case 4.25..<4.75: return ["star.fill", "star.fill", "star.fill", "star.fill", "star.leadinghalf.filled"]
+            default: return ["star.fill", "star.fill", "star.fill", "star.fill", "star.fill"]
+            }
+        }()
+        
+        for (index, state) in starStates.enumerated() {
+            if let star = ratingStack.arrangedSubviews[index] as? UIImageView {
+                star.image = UIImage(systemName: state)
+            }
+        }
+    }
     
     // 겹치는 부분 중복 테두리 방지를 위한 테두리 추가 함수
     private func addBorder(to button: UIButton, edges: UIRectEdge, color: UIColor, width: CGFloat) {
@@ -459,6 +568,38 @@ public class RestaurantMapViewController: UIViewController {
                 button.layer.addSublayer(rightBorder)
             }
         }
+    }
+    // 이미지 크기 조정 함수
+    private func resizeImage(image: UIImage?, to size: CGSize) -> UIImage? {
+        guard let image = image else { return nil }
+        
+        UIGraphicsBeginImageContextWithOptions(size, false, image.scale)
+        image.draw(in: CGRect(origin: .zero, size: size))
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return resizedImage
+    }
+
+    // 이미지에 여백 추가 함수
+    private func addPaddingToImage(image: UIImage?, paddingSize: CGFloat, paddingColor: UIColor) -> UIImage? {
+        guard let image = image else { return nil }
+        
+        let newSize = CGSize(width: image.size.width + paddingSize * 2, height: image.size.height + paddingSize * 2)
+        UIGraphicsBeginImageContextWithOptions(newSize, false, image.scale)
+        
+        // 배경색을 지정
+        paddingColor.setFill()
+        UIBezierPath(rect: CGRect(origin: .zero, size: newSize)).fill()
+        
+        // 이미지를 지정된 위치에 그리기
+        let imageRect = CGRect(x: paddingSize, y: paddingSize, width: image.size.width, height: image.size.height)
+        image.draw(in: imageRect)
+        
+        let paddedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return paddedImage
     }
 }
 
@@ -520,7 +661,7 @@ extension RestaurantMapViewController: MKMapViewDelegate {
                     self.view.layoutIfNeeded()
                 }
             } else {
-                // 새로운ㅇ 어노테이션 선택 시
+                // 새로운 어노테이션 선택 시
                 selectedRestaurantIndex = selectedIndex
                 selectedAnnotation.type = .selected
                 DispatchQueue.main.async {
@@ -530,6 +671,7 @@ extension RestaurantMapViewController: MKMapViewDelegate {
                     self.userLocationButtonBottomConstraint.isActive = true
                     self.view.layoutIfNeeded()
                 }
+                updatePlaceContainer()
             }
         }
         
