@@ -8,14 +8,23 @@
 import UIKit
 import Kingfisher
 import MapKit
+import Combine
 import Domain
 import Data
 
 public class RestaurantMapViewController: UIViewController {
-    private let allowedDistances = [100, 200, 300, 400, 500]
-    private let currentLocation = Location(latitude: 37.574475, longitude: 126.988776)
-    private var bestRestaurants = [PlaceDetail(name: "식당 이름", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.575, longitude: 126.989)), url: "https://www.google.com", rating: 4.1, user_ratings_total: 5, photos: nil), PlaceDetail(name: "식당 이름2", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.576, longitude: 126.99)), url: "https://www.naver.com", rating: 4.3, user_ratings_total: 2, photos: nil)]
-    private var selectedRestaurantIndex: Int? = nil
+    private let restaurantMapViewModel: RestaurantMapViewModel
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    public init(restaurantMapViewModel: RestaurantMapViewModel) {
+        self.restaurantMapViewModel = restaurantMapViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     private lazy var mapView: MKMapView = {
         let mapView = MKMapView()
@@ -251,11 +260,46 @@ public class RestaurantMapViewController: UIViewController {
         
         view.backgroundColor = UIColor(named: "BackgroundColor")
         
+        bindViewModel()
+        
         setupUI()
         
         setButtonActions()
         
+    }
+    
+    override public func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
         updateMapView()
+    }
+    
+    private func bindViewModel() {
+        // 설정된 위치 바인딩
+        restaurantMapViewModel.$setLocation
+            .sink { setLocation in
+                if let setLocation = setLocation {
+                    self.centerMapOnLocation(location: setLocation)
+                }
+            }
+            .store(in: &cancellables)
+        // 에러 메시지 바인딩
+        restaurantMapViewModel.$errorMessage
+            .sink { errorMessage in
+                if let errorMessage = errorMessage {
+                    if errorMessage == LocationServiceError.permissionDenied.errorDescription {
+                        self.showPermissionDeniedAlert()
+                    } else if errorMessage == LocationServiceError.permissionRestricted.errorDescription {
+                        self.showPermissionRestrictedAlert()
+                    } else if errorMessage == LocationServiceError.unknownError.errorDescription {
+                        self.showLocationUnknownErrorAlert()
+                    }
+                    else {
+                        print("Error: \(errorMessage)")
+                    }
+                }
+            }
+            .store(in: &cancellables)
     }
     
     private func setupUI() {
@@ -387,7 +431,7 @@ public class RestaurantMapViewController: UIViewController {
     
     private func setButtonActions() {
         restaurantInfoButton.addAction(UIAction { [weak self] _ in
-            guard let selectedRestaurantIndex = self?.selectedRestaurantIndex, let placeDetail = self?.bestRestaurants[selectedRestaurantIndex] else { return }
+            guard let selectedRestaurantIndex = self?.restaurantMapViewModel.selectedRestaurantIndex, let placeDetail = self?.restaurantMapViewModel.bestRestaurants[selectedRestaurantIndex] else { return }
             let webViewController = WebViewController(urlString: placeDetail.url)
             self?.present(webViewController, animated: true, completion: nil)
             
@@ -412,7 +456,7 @@ public class RestaurantMapViewController: UIViewController {
 //        }, for: .touchUpInside)
         
         directionsButton.addAction(UIAction { [weak self] _ in
-            guard let selectedRestaurantIndex = self?.selectedRestaurantIndex, let originLocation = self?.currentLocation, let destinationLocation = self?.bestRestaurants[selectedRestaurantIndex].geometry.location else { return }
+            guard let selectedRestaurantIndex = self?.restaurantMapViewModel.selectedRestaurantIndex, let originLocation = self?.restaurantMapViewModel.setLocation, let destinationLocation = self?.restaurantMapViewModel.bestRestaurants[selectedRestaurantIndex].geometry.location else { return }
             
             let locationService = LocationServiceImplementation()
             let locationRepository = LocationRepositoryImplementation(locationService: locationService)
@@ -434,8 +478,10 @@ public class RestaurantMapViewController: UIViewController {
     }
     
     private func updateMapView() {
-        centerMapOnLocation(location: currentLocation)
-        addAnnotation()
+        if let location = restaurantMapViewModel.setLocation {
+            centerMapOnLocation(location: location)
+            addAnnotation()
+        }
     }
     
     private func centerMapOnLocation(location: Location, regionRadius: CLLocationDistance = 500, animated: Bool = false) {
@@ -453,7 +499,8 @@ public class RestaurantMapViewController: UIViewController {
         DispatchQueue.main.async {
             self.mapView.removeAnnotations(self.mapView.annotations)
         }
-        for bestRestaurant in bestRestaurants {
+        
+        for bestRestaurant in restaurantMapViewModel.bestRestaurants {
             let annotation = BestRestaurantAnnotation(type: .nonSelected)
             annotation.coordinate = CLLocationCoordinate2D(latitude: bestRestaurant.geometry.location.getLatitude(), longitude: bestRestaurant.geometry.location.getLongitude())
             DispatchQueue.main.async {
@@ -483,8 +530,8 @@ public class RestaurantMapViewController: UIViewController {
         }
     }
     private func updatePlaceContainer() {
-        guard let selectedRestaurantIndex = selectedRestaurantIndex else { return }
-        let selectedPlaceDetail = bestRestaurants[selectedRestaurantIndex]
+        guard let selectedRestaurantIndex = restaurantMapViewModel.selectedRestaurantIndex else { return }
+        let selectedPlaceDetail = restaurantMapViewModel.bestRestaurants[selectedRestaurantIndex]
         DispatchQueue.main.async {
             self.placeNameLabel.text = selectedPlaceDetail.name
             self.ratingLabel.text = "평점 : \(selectedPlaceDetail.rating ?? 0.0) (\(selectedPlaceDetail.user_ratings_total ?? 0))"
@@ -512,6 +559,55 @@ public class RestaurantMapViewController: UIViewController {
 //                self.noImageLabel.isHidden = false
 //            }
 //        }
+    }
+    //MARK: Alert 함수
+    private func showPermissionDeniedAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(
+                title: "위치 서비스 권한 필요",
+                message: self.restaurantMapViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "설정으로 이동", style: .default, handler: { _ in
+                if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsURL)
+                }
+            }))
+            alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+            
+            self.present(alert, animated: true)
+        }
+    }
+    
+    private func showPermissionRestrictedAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let alert = UIAlertController(
+                title: "위치 서비스 권한 필요",
+                message: self.restaurantMapViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "확인", style: .default))
+            
+            self.present(alert, animated: true)
+        }
+    }
+    
+    private func showLocationUnknownErrorAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(
+                title: "위치 정보 가져오기 실패",
+                message: self.restaurantMapViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "닫기", style: .default))
+            
+            self.present(alert, animated: true)
+        }
     }
     
     //MARK: UI 보조 함수
@@ -642,7 +738,7 @@ extension RestaurantMapViewController: MKMapViewDelegate {
     public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotation) {
         guard let selectedAnnotation = view as? BestRestaurantAnnotation else { return }
         
-        if let selectedIndex = bestRestaurants.firstIndex(where: {
+        if let selectedIndex = restaurantMapViewModel.bestRestaurants.firstIndex(where: {
             $0.geometry.location.getLatitude() == selectedAnnotation.coordinate.latitude &&
             $0.geometry.location.getLongitude() == selectedAnnotation.coordinate.longitude
         }) {
@@ -650,8 +746,8 @@ extension RestaurantMapViewController: MKMapViewDelegate {
                 annotation.type = .nonSelected
             }
             // 이미 어노테이션이 선택되어있을 경우 선택 해제
-            if selectedRestaurantIndex == selectedIndex {
-                selectedRestaurantIndex = nil
+            if restaurantMapViewModel.selectedRestaurantIndex == selectedIndex {
+                restaurantMapViewModel.selectedRestaurantIndex = nil
                 let safeArea = self.view.safeAreaLayoutGuide
                 DispatchQueue.main.async {
                     self.placeContainer.isHidden = true
@@ -662,7 +758,7 @@ extension RestaurantMapViewController: MKMapViewDelegate {
                 }
             } else {
                 // 새로운 어노테이션 선택 시
-                selectedRestaurantIndex = selectedIndex
+                restaurantMapViewModel.selectedRestaurantIndex = selectedIndex
                 selectedAnnotation.type = .selected
                 DispatchQueue.main.async {
                     self.placeContainer.isHidden = false
