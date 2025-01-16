@@ -21,11 +21,9 @@ public class RestaurantMapViewModel {
     @Published var errorMessage: String?
     
     let locationViewModel: LocationViewModel
-    private let reverseGeocodingViewModel: ReverseGeocodingViewModel
 
     public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel) {
         self.locationViewModel = locationViewModel
-        self.reverseGeocodingViewModel = reverseGeocodingViewModel
         bindViewModels()
     }
     
@@ -34,14 +32,15 @@ public class RestaurantMapViewModel {
         locationViewModel.$location
             .compactMap { $0 }
             .sink { [weak self] location in
-                guard let self = self else { return }
-                if shouldUpdateCurrentLocation {
-                    self.currentLocation = location
-                    self.shouldUpdateCurrentLocation = false
-                } else {
-                    self.setLocation = location
-                }
+                self?.setLocation = location
+                self?.locationViewModel.updateCoreDataLocation(location: location)
             }
             .store(in: &cancellables)
     }
+    
+    // 현재 위치 가져오기 시작
+    func fetchCurrentLocationAndAddress() {
+        locationViewModel.fetchCurrentLocation()
+    }
+    
 }

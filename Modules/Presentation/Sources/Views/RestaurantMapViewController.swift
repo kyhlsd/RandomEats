@@ -279,7 +279,7 @@ public class RestaurantMapViewController: UIViewController {
         restaurantMapViewModel.$setLocation
             .sink { setLocation in
                 if let setLocation = setLocation {
-                    self.centerMapOnLocation(location: setLocation)
+                    self.centerMapOnLocation(location: setLocation, animated: true)
                 }
             }
             .store(in: &cancellables)
@@ -430,6 +430,10 @@ public class RestaurantMapViewController: UIViewController {
     }
     
     private func setButtonActions() {
+        currentLocationButton.addAction(UIAction { [weak self] _ in
+            self?.restaurantMapViewModel.fetchCurrentLocationAndAddress()
+        }, for: .touchUpInside)
+        
         restaurantInfoButton.addAction(UIAction { [weak self] _ in
             guard let selectedRestaurantIndex = self?.restaurantMapViewModel.selectedRestaurantIndex, let placeDetail = self?.restaurantMapViewModel.bestRestaurants[selectedRestaurantIndex] else { return }
             let webViewController = WebViewController(urlString: placeDetail.url)
