@@ -24,6 +24,7 @@ public class RestaurantMapViewModel {
     @Published var setLocation: Location?
     @Published var bestRestaurants: [PlaceDetail]?
     @Published var errorMessage: String?
+    @Published var isFetching: Bool = false
     
     let locationViewModel: LocationViewModel
     private let reverseGeocodingViewModel: ReverseGeocodingViewModel
@@ -67,6 +68,7 @@ public class RestaurantMapViewModel {
             .compactMap { $0 }
             .sink { [weak self] restaurants in
                 self?.bestRestaurants = restaurants
+                self?.isFetching = false
             }
             .store(in: &cancellables)
     }
@@ -153,6 +155,7 @@ public class RestaurantMapViewModel {
     // 주변 식당을 받아오는 함수
     func fetchNearbyRestaurants() {
         guard let setLocation = setLocation else { return }
+        isFetching = true
         searchRestaurantViewModel.fetchNearbyRestaurant(for: setLocation, maximumDistance: maximumDistance)
     }
     // best 식당 5개 정보 가져오기

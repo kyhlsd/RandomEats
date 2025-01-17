@@ -246,6 +246,31 @@ public class RestaurantMapViewController: UIViewController {
         directionsButton.translatesAutoresizingMaskIntoConstraints = false
         return directionsButton
     }()
+    private lazy var indicatorContainer = {
+        let indicatorContainer = UIView()
+        indicatorContainer.layer.cornerRadius = 10
+        indicatorContainer.layer.masksToBounds = true
+        indicatorContainer.backgroundColor = UIColor(named: "PrimaryColor")
+        indicatorContainer.translatesAutoresizingMaskIntoConstraints = false
+        indicatorContainer.isHidden = true
+        return indicatorContainer
+    }()
+    private lazy var indicatorView = {
+        let indicatorView = UIActivityIndicatorView(style: .large)
+        indicatorView.color = .gray
+        indicatorView.translatesAutoresizingMaskIntoConstraints = false
+        return indicatorView
+    }()
+    private lazy var indicatorLabel = {
+        let indicatorLabel = UILabel()
+        indicatorLabel.text = "주위 식당 정보를 불러오고 있습니다\n이 작업은 몇 초정도 소요됩니다"
+        indicatorLabel.numberOfLines = 2
+        indicatorLabel.textAlignment = .center
+        indicatorLabel.textColor = .gray
+        indicatorLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        indicatorLabel.translatesAutoresizingMaskIntoConstraints = false
+        return indicatorLabel
+    }()
     
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -288,6 +313,20 @@ public class RestaurantMapViewController: UIViewController {
             .sink { bestRestaurants in
                 if let bestRestaurants = bestRestaurants {
                     self.addAnnotation(bestRestaurants: bestRestaurants)
+                }
+            }
+            .store(in: &cancellables)
+        // isFetching 바인딩
+        restaurantMapViewModel.$isFetching
+            .sink { isFetching in
+                DispatchQueue.main.async {
+                    if isFetching {
+                        self.indicatorContainer.isHidden = false
+                        self.indicatorView.startAnimating()
+                    } else {
+                        self.indicatorContainer.isHidden = true
+                        self.indicatorView.stopAnimating()
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -334,6 +373,9 @@ public class RestaurantMapViewController: UIViewController {
         placeContainer.addSubview(reviewCountingLabel)
         placeContainer.addSubview(restaurantInfoButton)
         placeContainer.addSubview(directionsButton)
+        view.addSubview(indicatorContainer)
+        indicatorContainer.addSubview(indicatorView)
+        indicatorContainer.addSubview(indicatorLabel)
         
         let safeArea = view.safeAreaLayoutGuide
         userLocationButtonBottomConstraint = userLocationButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -20)
@@ -434,6 +476,19 @@ public class RestaurantMapViewController: UIViewController {
             directionsButton.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -12),
             directionsButton.widthAnchor.constraint(equalToConstant: 90),
             directionsButton.centerYAnchor.constraint(equalTo: placeContainer.centerYAnchor),
+            
+            indicatorContainer.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            indicatorContainer.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
+            indicatorContainer.heightAnchor.constraint(equalToConstant: 250),
+            indicatorContainer.widthAnchor.constraint(equalToConstant: 250),
+            
+            indicatorView.centerXAnchor.constraint(equalTo: indicatorContainer.centerXAnchor),
+            indicatorView.centerYAnchor.constraint(equalTo: indicatorContainer.centerYAnchor),
+            indicatorView.widthAnchor.constraint(equalToConstant: 200),
+            indicatorView.heightAnchor.constraint(equalToConstant: 200),
+            
+            indicatorLabel.centerXAnchor.constraint(equalTo: indicatorContainer.centerXAnchor),
+            indicatorLabel.bottomAnchor.constraint(equalTo: indicatorContainer.bottomAnchor, constant: -20),
         ])
     }
     
