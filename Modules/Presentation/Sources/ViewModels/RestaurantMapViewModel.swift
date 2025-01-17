@@ -52,8 +52,13 @@ public class RestaurantMapViewModel {
         // 주위 식당 placeID 바인딩
         searchRestaurantViewModel.$restaurants
             .compactMap { $0 }
-            .sink { [weak self] restaurantIDs in
-                self?.bestRestaurantIDs = Array(restaurantIDs.prefix(5))
+            .sink { [weak self] restaurants in
+                let sortedRestaurants = restaurants
+                    .filter { ($0.user_ratings_total ?? 0) > 0 }
+                    .sorted {
+                    ($0.user_ratings_total ?? 0) > ($1.user_ratings_total ?? 0)
+                }
+                self?.bestRestaurantIDs = Array(sortedRestaurants.prefix(5)).map { $0.place_id}
                 self?.fetchBestRestaurantDetails()
             }
             .store(in: &cancellables)
@@ -146,9 +151,9 @@ public class RestaurantMapViewModel {
     }
     
     // 주변 식당을 받아오는 함수
-    func fetchNearbyRestaurantIDs() {
+    func fetchNearbyRestaurants() {
         guard let setLocation = setLocation else { return }
-        searchRestaurantViewModel.fetchNearbyRestaurantID(for: setLocation, maximumDistance: maximumDistance)
+        searchRestaurantViewModel.fetchNearbyRestaurant(for: setLocation, maximumDistance: maximumDistance)
     }
     // best 식당 5개 정보 가져오기
     func fetchBestRestaurantDetails() {

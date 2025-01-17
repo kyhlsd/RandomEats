@@ -17,7 +17,7 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
     private let url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
     private var cancellables = Set<AnyCancellable>()
     
-    public func fetchNearbyRestaurantID(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
+    public func fetchNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[PlaceForNearbySearch], Error> {
         // API 키 가져오기
         guard let googlePlacesAPIKey = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_PLACES_API_KEY") as? String else {
             print("Failed to get API Key")
@@ -34,8 +34,8 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
         
         // 첫 페이지 요청 Publisher
         return fetchPage(parameters: initialParameters)
-            .flatMap { response -> AnyPublisher<[String], Error> in
-                self.fetchAllPages(initialResults: response.results.map { $0.place_id }, nextPageToken: response.next_page_token, apiKey: googlePlacesAPIKey, longitude: longitude, latitude: latitude, maximumDistance: maximumDistance)
+            .flatMap { response -> AnyPublisher<[PlaceForNearbySearch], Error> in
+                self.fetchAllPages(initialResults: response.results, nextPageToken: response.next_page_token, apiKey: googlePlacesAPIKey, longitude: longitude, latitude: latitude, maximumDistance: maximumDistance)
             }
             .eraseToAnyPublisher()
     }
@@ -57,7 +57,7 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
         .eraseToAnyPublisher()
     }
         
-    private func fetchAllPages(initialResults: [String], nextPageToken: String?, apiKey: String, longitude: Double, latitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
+    private func fetchAllPages(initialResults: [PlaceForNearbySearch], nextPageToken: String?, apiKey: String, longitude: Double, latitude: Double, maximumDistance: Int) -> AnyPublisher<[PlaceForNearbySearch], Error> {
         guard let token = nextPageToken else {
             return Just(initialResults)
                 .setFailureType(to: Error.self)
@@ -76,8 +76,8 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
             .flatMap { _ in
                 return self.fetchPage(parameters: parameters)
             }
-            .flatMap { response -> AnyPublisher<[String], Error> in
-                let combinedResults = initialResults + response.results.map { $0.place_id }
+            .flatMap { response -> AnyPublisher<[PlaceForNearbySearch], Error> in
+                let combinedResults = initialResults + response.results
                 return self.fetchAllPages(initialResults: combinedResults, nextPageToken: response.next_page_token, apiKey: apiKey, longitude: longitude, latitude: latitude, maximumDistance: maximumDistance)
             }
             .eraseToAnyPublisher()

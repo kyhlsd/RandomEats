@@ -14,7 +14,7 @@ public class SearchRestaurantViewModel {
     private let restaurantDetailUseCase: RestaurantDetailUseCaseProtocol
     private var cancellables = Set<AnyCancellable>()
     
-    @Published var restaurants: [String]?
+    @Published var restaurants: [PlaceForNearbySearch]?
     @Published var errorMessage: String?
     @Published var restaurantDetail: PlaceDetail?
     @Published var photoURL: URL?
@@ -27,8 +27,8 @@ public class SearchRestaurantViewModel {
     }
     
     // 주변 식당을 받아오는 함수
-    func fetchNearbyRestaurantID(for location: Location, maximumDistance: Int) {
-        nearbyRestaurantUseCase.getNearbyRestaurantID(latitude: location.getLatitude(), longitude: location.getLongitude(), maximumDistance: maximumDistance)
+    func fetchNearbyRestaurant(for location: Location, maximumDistance: Int) {
+        nearbyRestaurantUseCase.getNearbyRestaurant(latitude: location.getLatitude(), longitude: location.getLongitude(), maximumDistance: maximumDistance)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {

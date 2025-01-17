@@ -30,7 +30,7 @@ public class RandomRecommendViewModel {
     var maximumDistance = 300
     let allowedValues: [Float] = [0.0, 0.25, 0.5, 0.75, 1.0]
     let allowedDistances: [Int] = [100, 200, 300, 400, 500]
-    private var restaurantIDs = [String]()
+    private var restaurants = [PlaceForNearbySearch]()
     var initialStateForEmptyList = true
     
     public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, searchRestaurantViewModel: SearchRestaurantViewModel) {
@@ -83,9 +83,9 @@ public class RandomRecommendViewModel {
         
         // 주위 식당 가져오기 결과 바인딩
         searchRestaurantViewModel.$restaurants
-            .sink { [weak self] restaurantIDs in
-                if let restaurantIDs = restaurantIDs {
-                    self?.restaurantIDs = restaurantIDs
+            .sink { [weak self] restaurants in
+                if let restaurants = restaurants {
+                    self?.restaurants = restaurants
                 }
                 if let initialStateForEmptyList =  self?.initialStateForEmptyList, initialStateForEmptyList {
                     self?.initialStateForEmptyList = false
@@ -141,20 +141,20 @@ public class RandomRecommendViewModel {
     func fetchNearbyRestaurants() {
         if let location = locationViewModel.location {
             isFetching = true
-            searchRestaurantViewModel.fetchNearbyRestaurantID(for: location, maximumDistance: maximumDistance)
+            searchRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: maximumDistance)
             isConditionChanged = false
         }
     }
     
     // 식당 상세 정보 가져오기
     func getRandomRestaurantDetail() {
-        if restaurantIDs.isEmpty {
+        if restaurants.isEmpty {
             self.shouldShowEmptyContainer = true
             return
         } else {
             self.shouldShowEmptyContainer = false
         }
-        guard let randomPickedId = restaurantIDs.randomElement() else {
+        guard let randomPickedId = restaurants.randomElement()?.place_id else {
             print("Random Pick Id 오류")
             return
         }

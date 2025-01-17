@@ -9,7 +9,7 @@ import Combine
 import Foundation
 
 public protocol NearbyRestaurantUseCaseProtocol {
-    func getNearbyRestaurantID(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error>
+    func getNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[PlaceForNearbySearch], Error>
 }
 
 public class NearbyRestaurantUseCase: NearbyRestaurantUseCaseProtocol {
@@ -19,7 +19,7 @@ public class NearbyRestaurantUseCase: NearbyRestaurantUseCaseProtocol {
         self.nearbyRestaurantRepository = nearbyRestaurantRepository
     }
 
-    public func getNearbyRestaurantID(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
-        return nearbyRestaurantRepository.fetchNearbyRestaurantID(latitude: latitude, longitude: longitude, maximumDistance: maximumDistance)
+    public func getNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[PlaceForNearbySearch], Error> {
+        return nearbyRestaurantRepository.fetchNearbyRestaurant(latitude: latitude, longitude: longitude, maximumDistance: maximumDistance)
     }
 }

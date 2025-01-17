@@ -7,7 +7,8 @@
 
 import Combine
 import Foundation
+import Domain
 
 public protocol NearbyRestaurantServiceProtocol {
-    func fetchNearbyRestaurantID(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error>
+    func fetchNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[PlaceForNearbySearch], Error>
 }

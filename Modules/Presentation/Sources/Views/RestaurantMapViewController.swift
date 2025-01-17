@@ -499,7 +499,7 @@ public class RestaurantMapViewController: UIViewController {
         if let location = restaurantMapViewModel.setLocation {
             centerMapOnLocation(location: location)
             if restaurantMapViewModel.isConditionChanged {
-                restaurantMapViewModel.fetchNearbyRestaurantIDs()
+                restaurantMapViewModel.fetchNearbyRestaurants()
             }
         }
     }
