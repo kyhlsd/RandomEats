@@ -12,23 +12,30 @@ import Domain
 public class RestaurantMapViewModel {
     let allowedDistances = [100, 200, 300, 400, 500]
     var currentLocation: Location?
-    var bestRestaurants: [PlaceDetail] = [PlaceDetail(name: "식당 이름", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.575, longitude: 126.989)), url: "https://www.google.com", rating: 4.1, user_ratings_total: 5, photos: nil), PlaceDetail(name: "식당 이름2", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.576, longitude: 126.99)), url: "https://www.naver.com", rating: 4.3, user_ratings_total: 2, photos: nil)]
+//    var bestRestaurants: [PlaceDetail] = [PlaceDetail(name: "식당 이름", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.575, longitude: 126.989)), url: "https://www.google.com", rating: 4.1, user_ratings_total: 5, photos: nil), PlaceDetail(name: "식당 이름2", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.576, longitude: 126.99)), url: "https://www.naver.com", rating: 4.3, user_ratings_total: 2, photos: nil)]
+    var bestRestaurantIDs: [String]?
+    var maximumDistance: Int = 300
     var selectedRestaurantIndex: Int? = nil
-    private var cancellables = Set<AnyCancellable>()
+    private var restaurants: [PlaceDetail]? = nil
     var shouldUpdateCurrentLocation = false
-    
+    var isConditionChanged = true
+    private var cancellables = Set<AnyCancellable>()
+
     @Published var setLocation: Location?
+    @Published var bestRestaurants: [PlaceDetail]?
     @Published var errorMessage: String?
     
     let locationViewModel: LocationViewModel
     private let reverseGeocodingViewModel: ReverseGeocodingViewModel
     private let locationUseCase: LocationUseCaseProtocol
+    private let searchRestaurantViewModel: SearchRestaurantViewModel
     public weak var delegate: CenterMapBetweenLocationsDelegate?
 
-    public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, locationUseCase: LocationUseCaseProtocol) {
+    public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, locationUseCase: LocationUseCaseProtocol, searchRestaurantViewModel: SearchRestaurantViewModel) {
         self.locationViewModel = locationViewModel
         self.reverseGeocodingViewModel = reverseGeocodingViewModel
         self.locationUseCase = locationUseCase
+        self.searchRestaurantViewModel = searchRestaurantViewModel
         bindViewModels()
     }
     
@@ -38,6 +45,23 @@ public class RestaurantMapViewModel {
             .compactMap { $0 }
             .sink { [weak self] location in
                 self?.setLocation = location
+                self?.isConditionChanged = true
+            }
+            .store(in: &cancellables)
+        
+        // 주위 식당 placeID 바인딩
+        searchRestaurantViewModel.$restaurants
+            .compactMap { $0 }
+            .sink { [weak self] restaurantIDs in
+                self?.bestRestaurantIDs = Array(restaurantIDs.prefix(5))
+                self?.fetchBestRestaurantDetails()
+            }
+            .store(in: &cancellables)
+        
+        searchRestaurantViewModel.$bestRestaurantDetails
+            .compactMap { $0 }
+            .sink { [weak self] restaurants in
+                self?.bestRestaurants = restaurants
             }
             .store(in: &cancellables)
     }
@@ -71,6 +95,8 @@ public class RestaurantMapViewModel {
             })
             .store(in: &cancellables)
     }
+    
+    
     
     func getDistanceBetween() -> Int? {
         guard let currentLocation = currentLocation else {
@@ -117,6 +143,17 @@ public class RestaurantMapViewModel {
         let averageLocation = Location(latitude: averageLatitude, longitude: averageLongitude)
         
         return averageLocation
+    }
+    
+    // 주변 식당을 받아오는 함수
+    func fetchNearbyRestaurantIDs() {
+        guard let setLocation = setLocation else { return }
+        searchRestaurantViewModel.fetchNearbyRestaurantID(for: setLocation, maximumDistance: maximumDistance)
+    }
+    // best 식당 5개 정보 가져오기
+    func fetchBestRestaurantDetails() {
+        guard let bestRestaurantIDs = bestRestaurantIDs else { return }
+        searchRestaurantViewModel.fetchBestRestaurantDetails(placeIDs: bestRestaurantIDs)
     }
 }
 

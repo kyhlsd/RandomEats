@@ -17,7 +17,7 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
     private let url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
     private var cancellables = Set<AnyCancellable>()
     
-    public func fetchNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
+    public func fetchNearbyRestaurantID(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
         // API 키 가져오기
         guard let googlePlacesAPIKey = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_PLACES_API_KEY") as? String else {
             print("Failed to get API Key")

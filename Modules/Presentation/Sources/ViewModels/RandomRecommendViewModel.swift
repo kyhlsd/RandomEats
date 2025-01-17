@@ -141,7 +141,7 @@ public class RandomRecommendViewModel {
     func fetchNearbyRestaurants() {
         if let location = locationViewModel.location {
             isFetching = true
-            searchRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: maximumDistance)
+            searchRestaurantViewModel.fetchNearbyRestaurantID(for: location, maximumDistance: maximumDistance)
             isConditionChanged = false
         }
     }

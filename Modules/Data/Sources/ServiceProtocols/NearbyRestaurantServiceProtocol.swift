@@ -9,5 +9,5 @@ import Combine
 import Foundation
 
 public protocol NearbyRestaurantServiceProtocol {
-    func fetchNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error>
+    func fetchNearbyRestaurantID(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error>
 }

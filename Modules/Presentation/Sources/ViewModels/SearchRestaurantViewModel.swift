@@ -18,6 +18,7 @@ public class SearchRestaurantViewModel {
     @Published var errorMessage: String?
     @Published var restaurantDetail: PlaceDetail?
     @Published var photoURL: URL?
+    @Published var bestRestaurantDetails: [PlaceDetail]?
     
     // UseCase 주입
     public init(nearbyRestaurantUseCase: NearbyRestaurantUseCaseProtocol, restaurantDetailUseCase: RestaurantDetailUseCaseProtocol) {
@@ -26,8 +27,8 @@ public class SearchRestaurantViewModel {
     }
     
     // 주변 식당을 받아오는 함수
-    func fetchNearbyRestaurant(for location: Location, maximumDistance: Int) {
-        nearbyRestaurantUseCase.getNearbyRestaurant(latitude: location.getLatitude(), longitude: location.getLongitude(), maximumDistance: maximumDistance)
+    func fetchNearbyRestaurantID(for location: Location, maximumDistance: Int) {
+        nearbyRestaurantUseCase.getNearbyRestaurantID(latitude: location.getLatitude(), longitude: location.getLongitude(), maximumDistance: maximumDistance)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {
@@ -56,6 +57,29 @@ public class SearchRestaurantViewModel {
             }, receiveValue: { [weak self] fetchedRestaurantDetail in
                 self?.restaurantDetail = fetchedRestaurantDetail
                 self?.fetchPhotoURL()
+            })
+            .store(in: &cancellables)
+    }
+    
+    // best 식당 5개의 정보를 받아오는 함수
+    func fetchBestRestaurantDetails(placeIDs: [String]) {
+        
+        let detailPublishers = placeIDs.map { placeID in
+            restaurantDetailUseCase.getRestaurantDetail(placeId: placeID)
+        }
+        
+        Publishers.MergeMany(detailPublishers)
+            .collect()
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    self?.errorMessage = "Failed to fetch best restaurants details: \(error)"
+                case .finished:
+                    break
+                }
+            }, receiveValue: { [weak self] fetchedDetails in
+                self?.bestRestaurantDetails = fetchedDetails
             })
             .store(in: &cancellables)
     }

@@ -14,8 +14,8 @@ public class NearbyRestaurantRepositoryImplementation: NearbyRestaurantRepositor
         self.nearbyRestaurantService = nearbyRestaurantService
     }
     
-    public func fetchNearbyRestaurant(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
-        return nearbyRestaurantService.fetchNearbyRestaurant(latitude: latitude, longitude: longitude, maximumDistance: maximumDistance)
+    public func fetchNearbyRestaurantID(latitude: Double, longitude: Double, maximumDistance: Int) -> AnyPublisher<[String], Error> {
+        return nearbyRestaurantService.fetchNearbyRestaurantID(latitude: latitude, longitude: longitude, maximumDistance: maximumDistance)
     }
     
     

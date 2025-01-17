@@ -209,13 +209,13 @@ public class RestaurantMapViewController: UIViewController {
         ratingStack.translatesAutoresizingMaskIntoConstraints = false
        return ratingStack
     }()
-    private lazy var restaurantDistanceLabel = {
-        let restaurantDistanceLabel = UILabel()
-        restaurantDistanceLabel.text = "거리 : 170 m"
-        restaurantDistanceLabel.textColor = .black
-        restaurantDistanceLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        restaurantDistanceLabel.translatesAutoresizingMaskIntoConstraints = false
-        return restaurantDistanceLabel
+    private lazy var reviewCountingLabel = {
+        let reviewCountingLabel = UILabel()
+        reviewCountingLabel.text = "리뷰 수 : 10 개"
+        reviewCountingLabel.textColor = .black
+        reviewCountingLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        reviewCountingLabel.translatesAutoresizingMaskIntoConstraints = false
+        return reviewCountingLabel
     }()
     private lazy var restaurantInfoButton = {
         let restaurantInfoButton = UIButton()
@@ -283,6 +283,14 @@ public class RestaurantMapViewController: UIViewController {
                 }
             }
             .store(in: &cancellables)
+        // best 식당 정보 바인딩
+        restaurantMapViewModel.$bestRestaurants
+            .sink { bestRestaurants in
+                if let bestRestaurants = bestRestaurants {
+                    self.addAnnotation(bestRestaurants: bestRestaurants)
+                }
+            }
+            .store(in: &cancellables)
         // 에러 메시지 바인딩
         restaurantMapViewModel.$errorMessage
             .sink { errorMessage in
@@ -323,7 +331,7 @@ public class RestaurantMapViewController: UIViewController {
         placeContainer.addSubview(placeNameLabel)
         placeContainer.addSubview(ratingLabel)
         placeContainer.addSubview(ratingStack)
-        placeContainer.addSubview(restaurantDistanceLabel)
+        placeContainer.addSubview(reviewCountingLabel)
         placeContainer.addSubview(restaurantInfoButton)
         placeContainer.addSubview(directionsButton)
         
@@ -417,11 +425,11 @@ public class RestaurantMapViewController: UIViewController {
             ratingStack.leadingAnchor.constraint(equalTo: ratingLabel.trailingAnchor, constant: 5),
             ratingStack.centerYAnchor.constraint(equalTo: ratingLabel.centerYAnchor),
             
-            restaurantDistanceLabel.leadingAnchor.constraint(equalTo: placeNameLabel.leadingAnchor),
-            restaurantDistanceLabel.topAnchor.constraint(equalTo: ratingLabel.bottomAnchor, constant: 4),
+            reviewCountingLabel.leadingAnchor.constraint(equalTo: placeNameLabel.leadingAnchor),
+            reviewCountingLabel.topAnchor.constraint(equalTo: ratingLabel.bottomAnchor, constant: 4),
             
             restaurantInfoButton.leadingAnchor.constraint(equalTo: placeNameLabel.leadingAnchor),
-            restaurantInfoButton.topAnchor.constraint(equalTo: restaurantDistanceLabel.bottomAnchor, constant: -3),
+            restaurantInfoButton.topAnchor.constraint(equalTo: reviewCountingLabel.bottomAnchor, constant: -3),
             
             directionsButton.trailingAnchor.constraint(equalTo: placeContainer.trailingAnchor, constant: -12),
             directionsButton.widthAnchor.constraint(equalToConstant: 90),
@@ -442,7 +450,7 @@ public class RestaurantMapViewController: UIViewController {
         }, for: .touchUpInside)
         
         restaurantInfoButton.addAction(UIAction { [weak self] _ in
-            guard let selectedRestaurantIndex = self?.restaurantMapViewModel.selectedRestaurantIndex, let placeDetail = self?.restaurantMapViewModel.bestRestaurants[selectedRestaurantIndex] else { return }
+            guard let selectedRestaurantIndex = self?.restaurantMapViewModel.selectedRestaurantIndex, let placeDetail = self?.restaurantMapViewModel.bestRestaurants?[selectedRestaurantIndex] else { return }
             let webViewController = WebViewController(urlString: placeDetail.url)
             self?.present(webViewController, animated: true, completion: nil)
             
@@ -466,7 +474,7 @@ public class RestaurantMapViewController: UIViewController {
         }, for: .touchUpInside)
         
         directionsButton.addAction(UIAction { [weak self] _ in
-            guard let selectedRestaurantIndex = self?.restaurantMapViewModel.selectedRestaurantIndex, let originLocation = self?.restaurantMapViewModel.setLocation, let destinationLocation = self?.restaurantMapViewModel.bestRestaurants[selectedRestaurantIndex].geometry.location else { return }
+            guard let selectedRestaurantIndex = self?.restaurantMapViewModel.selectedRestaurantIndex, let originLocation = self?.restaurantMapViewModel.setLocation, let destinationLocation = self?.restaurantMapViewModel.bestRestaurants?[selectedRestaurantIndex].geometry.location else { return }
             
             let locationService = LocationServiceImplementation()
             let locationRepository = LocationRepositoryImplementation(locationService: locationService)
@@ -490,7 +498,9 @@ public class RestaurantMapViewController: UIViewController {
     private func updateMapView() {
         if let location = restaurantMapViewModel.setLocation {
             centerMapOnLocation(location: location)
-            addAnnotation()
+            if restaurantMapViewModel.isConditionChanged {
+                restaurantMapViewModel.fetchNearbyRestaurantIDs()
+            }
         }
     }
     
@@ -505,12 +515,12 @@ public class RestaurantMapViewController: UIViewController {
         }
     }
     
-    private func addAnnotation() {
+    private func addAnnotation(bestRestaurants: [PlaceDetail]) {
         DispatchQueue.main.async {
             self.mapView.removeAnnotations(self.mapView.annotations)
         }
         
-        for bestRestaurant in restaurantMapViewModel.bestRestaurants {
+        for bestRestaurant in bestRestaurants {
             let annotation = BestRestaurantAnnotation(type: .nonSelected)
             annotation.coordinate = CLLocationCoordinate2D(latitude: bestRestaurant.geometry.location.getLatitude(), longitude: bestRestaurant.geometry.location.getLongitude())
             DispatchQueue.main.async {
@@ -540,11 +550,11 @@ public class RestaurantMapViewController: UIViewController {
         }
     }
     private func updatePlaceContainer() {
-        guard let selectedRestaurantIndex = restaurantMapViewModel.selectedRestaurantIndex else { return }
-        let selectedPlaceDetail = restaurantMapViewModel.bestRestaurants[selectedRestaurantIndex]
+        guard let selectedRestaurantIndex = restaurantMapViewModel.selectedRestaurantIndex, let selectedPlaceDetail = restaurantMapViewModel.bestRestaurants?[selectedRestaurantIndex] else { return }
         DispatchQueue.main.async {
             self.placeNameLabel.text = selectedPlaceDetail.name
-            self.ratingLabel.text = "평점 : \(selectedPlaceDetail.rating ?? 0.0) (\(selectedPlaceDetail.user_ratings_total ?? 0))"
+            self.ratingLabel.text = "평점 : \(selectedPlaceDetail.rating ?? 0.0)"
+            self.reviewCountingLabel.text = "리뷰 수 : \(selectedPlaceDetail.user_ratings_total ?? 0) 개"
             self.updateRatingStars(rating: selectedPlaceDetail.rating ?? 0.0)
         }
         
@@ -553,7 +563,7 @@ public class RestaurantMapViewController: UIViewController {
         let resizedImage = resizeImage(image: photoImage, to: CGSize(width: 80, height: 80))
         let paddedImage = addPaddingToImage(image: resizedImage, paddingSize: 80, paddingColor: .white)
         
-        // TODO: photo url 가져오기, 거리 가져오기
+        // TODO: photo url 가져오기
 //        if let photoURL =  {
 //            // 이미지 정보가 있는 식당일 경우
 //            DispatchQueue.main.async {
@@ -748,7 +758,7 @@ extension RestaurantMapViewController: MKMapViewDelegate {
     public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotation) {
         guard let selectedAnnotation = view as? BestRestaurantAnnotation else { return }
         
-        if let selectedIndex = restaurantMapViewModel.bestRestaurants.firstIndex(where: {
+        if let selectedIndex = restaurantMapViewModel.bestRestaurants?.firstIndex(where: {
             $0.geometry.location.getLatitude() == selectedAnnotation.coordinate.latitude &&
             $0.geometry.location.getLongitude() == selectedAnnotation.coordinate.longitude
         }) {

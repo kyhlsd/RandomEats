@@ -54,7 +54,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let locationRepositoryForMap = LocationRepositoryImplementation(locationService: locationServiceForMap)
         let locationUseCaseForMap = LocationUseCase(locationRepository: locationRepositoryForMap)
         
-        let restaurantMapViewModel = RestaurantMapViewModel(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel, locationUseCase: locationUseCaseForMap)
+        let restaurantMapViewModel = RestaurantMapViewModel(locationViewModel: locationViewModel, reverseGeocodingViewModel: reverseGeocodingViewModel, locationUseCase: locationUseCaseForMap, searchRestaurantViewModel: searchRestaurantViewModel)
         let secondViewController = RestaurantMapViewController(restaurantMapViewModel: restaurantMapViewModel)
         restaurantMapViewModel.delegate = secondViewController
         
