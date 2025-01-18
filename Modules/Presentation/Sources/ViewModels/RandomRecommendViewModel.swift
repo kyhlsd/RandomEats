@@ -17,7 +17,7 @@ protocol SetAddressWithSearchedResultDelegate: AnyObject {
 public class RandomRecommendViewModel {
     let locationViewModel: LocationViewModel
     let reverseGeocodingViewModel: ReverseGeocodingViewModel
-    private let searchRestaurantViewModel: SearchRestaurantViewModel
+    let searchRestaurantViewModel: SearchRestaurantViewModel
     private var cancellables = Set<AnyCancellable>()
     
     @Published var errorMessage: String?
@@ -26,8 +26,6 @@ public class RandomRecommendViewModel {
     @Published var isFetching = false
     @Published var shouldShowEmptyContainer = false
     
-    var isConditionChanged = true
-    var maximumDistance = 300
     let allowedValues: [Float] = [0.0, 0.25, 0.5, 0.75, 1.0]
     let allowedDistances: [Int] = [100, 200, 300, 400, 500]
     private var restaurants = [PlaceForNearbySearch]()
@@ -50,7 +48,7 @@ public class RandomRecommendViewModel {
                 } else {
                     self?.locationViewModel.isAddressUpdateNeeded = true
                 }
-                self?.isConditionChanged = true
+                self?.searchRestaurantViewModel.isConditionChanged = true
                 self?.locationViewModel.updateCoreDataLocation(location: location)
             }
             .store(in: &cancellables)
@@ -141,8 +139,8 @@ public class RandomRecommendViewModel {
     func fetchNearbyRestaurants() {
         if let location = locationViewModel.location {
             isFetching = true
-            searchRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: maximumDistance)
-            isConditionChanged = false
+            searchRestaurantViewModel.fetchNearbyRestaurant(for: location, maximumDistance: searchRestaurantViewModel.maximumDistance)
+            searchRestaurantViewModel.isConditionChanged = false
         }
     }
     

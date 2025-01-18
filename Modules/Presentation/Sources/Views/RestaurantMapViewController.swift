@@ -322,7 +322,7 @@ public class RestaurantMapViewController: UIViewController {
             .sink { setLocation in
                 if let setLocation = setLocation {
                     self.centerMapOnLocation(location: setLocation, animated: true)
-                    self.restaurantMapViewModel.isConditionChanged = true
+                    self.restaurantMapViewModel.searchRestaurantViewModel.isConditionChanged = true
                 }
             }
             .store(in: &cancellables)
@@ -349,16 +349,16 @@ public class RestaurantMapViewController: UIViewController {
             }
             .store(in: &cancellables)
         // maximumDistance 바인딩
-        restaurantMapViewModel.$maximumDistance
+        restaurantMapViewModel.searchRestaurantViewModel.$maximumDistance
             .sink { maximumDistance in
                 DispatchQueue.main.async {
                     self.distanceLabel.text = "\(maximumDistance)m"
                 }
-                self.restaurantMapViewModel.isConditionChanged = true
+                self.restaurantMapViewModel.searchRestaurantViewModel.isConditionChanged = true
             }
             .store(in: &cancellables)
         // isConditionChanged 바인딩
-        restaurantMapViewModel.$isConditionChanged
+        restaurantMapViewModel.searchRestaurantViewModel.$isConditionChanged
             .sink { isConditionChanged in
                 DispatchQueue.main.async {
                     self.fetchBestRestaurantsButton.isHidden = !isConditionChanged
@@ -547,21 +547,21 @@ public class RestaurantMapViewController: UIViewController {
         
         distancePlusButton.addAction(UIAction { [weak self] _ in
             guard let self = self, let lastAllowedDistance = self.restaurantMapViewModel.allowedDistances.last else { return }
-            if self.restaurantMapViewModel.maximumDistance < lastAllowedDistance {
-                self.restaurantMapViewModel.maximumDistance += 100
+            if self.restaurantMapViewModel.searchRestaurantViewModel.maximumDistance < lastAllowedDistance {
+                self.restaurantMapViewModel.searchRestaurantViewModel.maximumDistance += 100
             }
         }, for: .touchUpInside)
         
         distanceMinusButton.addAction(UIAction { [weak self] _ in
             guard let self = self, let firstAllowedDistance = self.restaurantMapViewModel.allowedDistances.first else { return }
-            if self.restaurantMapViewModel.maximumDistance > firstAllowedDistance {
-                self.restaurantMapViewModel.maximumDistance -= 100
+            if self.restaurantMapViewModel.searchRestaurantViewModel.maximumDistance > firstAllowedDistance {
+                self.restaurantMapViewModel.searchRestaurantViewModel.maximumDistance -= 100
             }
         }, for: .touchUpInside)
         
         fetchBestRestaurantsButton.addAction(UIAction { [weak self] _ in
             self?.restaurantMapViewModel.fetchNearbyRestaurants()
-            self?.restaurantMapViewModel.isConditionChanged = false
+            self?.restaurantMapViewModel.searchRestaurantViewModel.isConditionChanged = false
         }, for: .touchUpInside)
         
         restaurantInfoButton.addAction(UIAction { [weak self] _ in

@@ -87,7 +87,7 @@ public class RandomRecommendViewController: UIViewController {
     }()
     private lazy var distanceSettingLabel = {
         let distanceSettingLabel = UILabel()
-        distanceSettingLabel.text = "최대 거리 설정 (\(randomRecommendViewModel.maximumDistance)m)"
+        distanceSettingLabel.text = "최대 거리 설정 (\(randomRecommendViewModel.searchRestaurantViewModel.maximumDistance)m)"
         distanceSettingLabel.textColor = .black
         distanceSettingLabel.font = .systemFont(ofSize: 13, weight: .medium)
         distanceSettingLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -411,7 +411,7 @@ public class RandomRecommendViewController: UIViewController {
         
         recommendAgainButton.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            if self.randomRecommendViewModel.isConditionChanged {
+            if self.randomRecommendViewModel.searchRestaurantViewModel.isConditionChanged {
                 self.randomRecommendViewModel.fetchNearbyRestaurants()
             } else {
                 self.randomRecommendViewModel.getRandomRestaurantDetail()
@@ -432,7 +432,7 @@ public class RandomRecommendViewController: UIViewController {
         
         emptyListAgainButton.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            if self.randomRecommendViewModel.isConditionChanged {
+            if self.randomRecommendViewModel.searchRestaurantViewModel.isConditionChanged {
                 self.randomRecommendViewModel.fetchNearbyRestaurants()
             } else {
                 self.randomRecommendViewModel.getRandomRestaurantDetail()
@@ -450,9 +450,8 @@ public class RandomRecommendViewController: UIViewController {
             }
             .sink { [weak self] allowedValue in
                 guard let self = self else { return }
-                distanceSlider.setValue(allowedValue, animated: false)
-                self.randomRecommendViewModel.maximumDistance = mapToDistance(value: allowedValue)
-                self.randomRecommendViewModel.isConditionChanged = true
+                self.randomRecommendViewModel.searchRestaurantViewModel.maximumDistance = mapToDistance(value: allowedValue)
+                self.randomRecommendViewModel.searchRestaurantViewModel.isConditionChanged = true
             }
             .store(in: &cancellables)
         distanceSlider.valuePublisher
@@ -477,6 +476,17 @@ public class RandomRecommendViewController: UIViewController {
                     DispatchQueue.main.async {
                         self?.placeLabel.text = address
                     }
+                }
+            }
+            .store(in: &cancellables)
+        
+        // 최대 거리 바인딩
+        randomRecommendViewModel.searchRestaurantViewModel.$maximumDistance
+            .sink { [weak self] maximumDistance in
+                guard let self = self, let sliderValue = mapToSliderValue(distance: maximumDistance, allowedDistances: self.randomRecommendViewModel.allowedDistances) else { return }
+                DispatchQueue.main.async {
+                    self.distanceSlider.setValue(sliderValue, animated: false)
+                    self.distanceSettingLabel.text = "최대 거리 설정 (\(maximumDistance)m)"
                 }
             }
             .store(in: &cancellables)
@@ -827,6 +837,20 @@ public class RandomRecommendViewController: UIViewController {
         return randomRecommendViewModel.allowedDistances[index]
     }
     
+    // 거리 Slider 값으로 변환
+    private func mapToSliderValue(distance: Int, allowedDistances: [Int]) -> Float? {
+        guard let minDistance = allowedDistances.min(), let maxDistance = allowedDistances.max() else {
+            return nil
+            }
+        
+        guard allowedDistances.contains(distance) else {
+            return nil
+            }
+        
+        let sliderValue = Float(distance - minDistance) / Float(maxDistance - minDistance)
+        return sliderValue
+    }
+    
     // 이미지 크기 조정 함수
     private func resizeImage(image: UIImage?, to size: CGSize) -> UIImage? {
         guard let image = image else { return nil }
@@ -868,7 +892,7 @@ public class RandomRecommendViewController: UIViewController {
             self.emptyListContainer.isHidden = false
             self.indicatorContainer.isHidden = true
             
-            self.emptyListLabel.text = "주위 \(self.randomRecommendViewModel.maximumDistance)m 안에 등록된 식당이 없습니다.\n조건을 확인해주세요."
+            self.emptyListLabel.text = "주위 \(self.randomRecommendViewModel.searchRestaurantViewModel.maximumDistance)m 안에 등록된 식당이 없습니다.\n조건을 확인해주세요."
         }
     }
 }

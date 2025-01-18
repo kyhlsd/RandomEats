@@ -19,7 +19,9 @@ public class SearchRestaurantViewModel {
     @Published var restaurantDetail: PlaceDetail?
     @Published var photoURL: URL?
     @Published var bestRestaurantDetails: [PlaceDetail]?
+    @Published var maximumDistance = 300
     @Published var photoURLs: [String: URL?]?
+    @Published var isConditionChanged = true
     
     // UseCase 주입
     public init(nearbyRestaurantUseCase: NearbyRestaurantUseCaseProtocol, restaurantDetailUseCase: RestaurantDetailUseCaseProtocol) {

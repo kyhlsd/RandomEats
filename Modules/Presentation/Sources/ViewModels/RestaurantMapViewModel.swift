@@ -22,15 +22,13 @@ public class RestaurantMapViewModel {
     @Published var setLocation: Location?
     @Published var photoURLs: [String: URL?]?
     @Published var isFetching: Bool = false
-    @Published var maximumDistance: Int = 300
-    @Published var isConditionChanged = true
     @Published var errorMessage: String?
     
     
     let locationViewModel: LocationViewModel
     private let reverseGeocodingViewModel: ReverseGeocodingViewModel
     private let locationUseCase: LocationUseCaseProtocol
-    private let searchRestaurantViewModel: SearchRestaurantViewModel
+    let searchRestaurantViewModel: SearchRestaurantViewModel
     public weak var delegate: CenterMapBetweenLocationsDelegate?
 
     public init(locationViewModel: LocationViewModel, reverseGeocodingViewModel: ReverseGeocodingViewModel, locationUseCase: LocationUseCaseProtocol, searchRestaurantViewModel: SearchRestaurantViewModel) {
@@ -47,7 +45,7 @@ public class RestaurantMapViewModel {
             .compactMap { $0 }
             .sink { [weak self] location in
                 self?.setLocation = location
-                self?.isConditionChanged = true
+                self?.searchRestaurantViewModel.isConditionChanged = true
             }
             .store(in: &cancellables)
         
@@ -170,7 +168,7 @@ public class RestaurantMapViewModel {
     func fetchNearbyRestaurants() {
         guard let setLocation = setLocation else { return }
         isFetching = true
-        searchRestaurantViewModel.fetchNearbyRestaurant(for: setLocation, maximumDistance: maximumDistance)
+        searchRestaurantViewModel.fetchNearbyRestaurant(for: setLocation, maximumDistance: searchRestaurantViewModel.maximumDistance)
     }
     // best 식당 5개 정보 가져오기
     func fetchBestRestaurantDetails() {
