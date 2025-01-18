@@ -308,14 +308,6 @@ public class RestaurantMapViewController: UIViewController {
         
     }
     
-    override public func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        if let location = restaurantMapViewModel.setLocation {
-            centerMapOnLocation(location: location)
-        }
-    }
-    
     private func bindViewModel() {
         // 설정된 위치 바인딩
         restaurantMapViewModel.$setLocation
@@ -329,8 +321,9 @@ public class RestaurantMapViewController: UIViewController {
         // best 식당 사진 URL 바인딩
         restaurantMapViewModel.$photoURLs
             .sink { photoURLs in
-                if let _ = photoURLs, let bestRestaurants = self.restaurantMapViewModel.bestRestaurants {
+                if let _ = photoURLs, let setLocation = self.restaurantMapViewModel.setLocation, let bestRestaurants = self.restaurantMapViewModel.bestRestaurants, let distance = self.restaurantMapViewModel.getMaxDistanceToBestRestaurant(from: setLocation, to: bestRestaurants) {
                     self.addAnnotation(bestRestaurants: bestRestaurants)
+                    self.centerMapOnLocation(location: setLocation, regionRadius: CLLocationDistance(Int(Double(distance) * 3.0)), animated: true)
                 }
             }
             .store(in: &cancellables)
@@ -560,8 +553,16 @@ public class RestaurantMapViewController: UIViewController {
         }, for: .touchUpInside)
         
         fetchBestRestaurantsButton.addAction(UIAction { [weak self] _ in
-            self?.restaurantMapViewModel.fetchNearbyRestaurants()
-            self?.restaurantMapViewModel.searchRestaurantViewModel.isConditionChanged = false
+            guard let self = self else { return }
+            if self.restaurantMapViewModel.searchRestaurantViewModel.isConditionChanged {
+                self.restaurantMapViewModel.fetchNearbyRestaurants()
+                self.restaurantMapViewModel.searchRestaurantViewModel.isConditionChanged = false
+            } else {
+                if let bestRestaurants = restaurantMapViewModel.bestRestaurants, let setLocation = restaurantMapViewModel.setLocation, let distance = self.restaurantMapViewModel.getMaxDistanceToBestRestaurant(from: setLocation, to: bestRestaurants) {
+                    self.addAnnotation(bestRestaurants: bestRestaurants)
+                    self.centerMapOnLocation(location: setLocation, regionRadius: CLLocationDistance(Int(Double(distance) * 3.0)), animated: true)
+                }
+            }
         }, for: .touchUpInside)
         
         restaurantInfoButton.addAction(UIAction { [weak self] _ in
@@ -905,7 +906,9 @@ extension RestaurantMapViewController: CenterMapBetweenLocationsDelegate {
     public func centerMapBetweenLocations() {
         if mapView.showsUserLocation {
             // 현재 위치와 설정된 위치의 중간으로 지도 세팅
-            if let averageLocation = restaurantMapViewModel.getAverageLocation(), let distance = restaurantMapViewModel.getDistanceBetween() {
+            let setLocation = restaurantMapViewModel.setLocation
+            let currentLocation = restaurantMapViewModel.currentLocation
+            if let averageLocation = restaurantMapViewModel.getAverageLocation(), let distance = restaurantMapViewModel.getDistanceBetween(from: setLocation, to: currentLocation) {
                 centerMapOnLocation(location: averageLocation, regionRadius: CLLocationDistance(Int(Double(distance) * 1.2)), animated: true)
             }
         }

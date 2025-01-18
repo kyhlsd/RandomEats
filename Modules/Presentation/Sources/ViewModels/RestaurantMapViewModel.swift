@@ -117,20 +117,20 @@ public class RestaurantMapViewModel {
     
     
     
-    func getDistanceBetween() -> Int? {
-        guard let currentLocation = currentLocation else {
-            print("currentLocation is nil")
+    func getDistanceBetween(from originLocation: Location?, to destinationLocation: Location?) -> Int? {
+        guard let originLocation = originLocation else {
+            print("originLocation is nil")
             return nil
         }
-        guard let destinationLocation = setLocation else {
-            print("setLocation is nil")
+        guard let destinationLocation = destinationLocation else {
+            print("destinationLocation is nil")
             return nil
         }
         
         let earthRadius = 6_371_000.0
         
-        let currentLat = currentLocation.getLatitude()
-        let currentLng = currentLocation.getLongitude()
+        let currentLat = originLocation.getLatitude()
+        let currentLng = originLocation.getLongitude()
         let destinationLat = destinationLocation.getLatitude()
         let destinationLng = destinationLocation.getLongitude()
         
@@ -197,6 +197,20 @@ public class RestaurantMapViewModel {
         // 최종 점수 계산
         let score = (weightForReviews * rating) + (weightForAverage * totalAverageRating)
         return score
+    }
+    // best 식당과 설정 위치 사이 최대 거리 구하기
+    func getMaxDistanceToBestRestaurant(from setLocation: Location, to places: [PlaceDetail]) -> Int? {
+        var maxDistance = 0
+        for place in places {
+            if let distance = getDistanceBetween(from: setLocation, to: place.geometry.location), distance > maxDistance {
+                maxDistance = distance
+            }
+        }
+        if maxDistance == 0 {
+            return nil
+        } else {
+            return maxDistance
+        }
     }
 }
 
