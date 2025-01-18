@@ -37,12 +37,15 @@ public class FetchCoordinatesServiceImplementaion: FetchCoordinatesServiceProtoc
                             let location = Location(latitude: lat, longitude: lng)
                             promise(.success(location))
                         } else {
-                            let error = NSError(domain: "PlaceCoordinatesError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Location data not found"])
-                            promise(.failure(error))
+                            promise(.failure(APIError.invalidResponse))
                         }
                     case .failure(let error):
-                        print("Failed to fetch place coordinates: \(error.localizedDescription)")
-                        promise(.failure(error))
+                        if let urlError = error.asAFError?.underlyingError as? URLError,
+                           urlError.code == .notConnectedToInternet {
+                            promise(.failure(APIError.noInternetConnection))
+                        } else {
+                            promise(.failure(APIError.unknownError(description: error.localizedDescription)))
+                        }
                     }
                 }
         }

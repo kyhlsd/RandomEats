@@ -34,8 +34,12 @@ public class SearchPlaceServiceImplementaion: SearchPlaceServiceProtocol {
                     case .success(let response):
                         promise(.success(response.predictions))
                     case .failure(let error):
-                        print("Failed to fetch restaurant detail: \(error.localizedDescription)")
-                        promise(.failure(error))
+                        if let urlError = error.asAFError?.underlyingError as? URLError,
+                           urlError.code == .notConnectedToInternet {
+                            promise(.failure(APIError.noInternetConnection))
+                        } else {
+                            promise(.failure(APIError.unknownError(description: error.localizedDescription)))
+                        }
                     }
                 }
         }

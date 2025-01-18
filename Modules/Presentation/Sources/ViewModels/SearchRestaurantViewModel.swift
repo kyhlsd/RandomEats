@@ -36,7 +36,16 @@ public class SearchRestaurantViewModel {
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {
                 case .failure(let error):
-                    self?.errorMessage = "Failed to fetch nearby restaurants: \(error)"
+                    switch error {
+                    case APIError.invalidResponse:
+                        self?.errorMessage = APIError.invalidResponse.errorDescription
+                    case APIError.noInternetConnection:
+                        self?.errorMessage = APIError.noInternetConnection.errorDescription
+                    case APIError.serverError:
+                        self?.errorMessage = APIError.serverError.errorDescription
+                    default:
+                        self?.errorMessage = APIError.unknownError(description: error.localizedDescription).errorDescription
+                    }
                 case .finished:
                     break
                 }
@@ -53,7 +62,16 @@ public class SearchRestaurantViewModel {
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {
                 case .failure(let error):
-                    self?.errorMessage = "Failed to fetch restaurant detail: \(error)"
+                    switch error {
+                    case APIError.invalidResponse:
+                        self?.errorMessage = APIError.invalidResponse.errorDescription
+                    case APIError.noInternetConnection:
+                        self?.errorMessage = APIError.noInternetConnection.errorDescription
+                    case APIError.serverError:
+                        self?.errorMessage = APIError.serverError.errorDescription
+                    default:
+                        self?.errorMessage = APIError.unknownError(description: error.localizedDescription).errorDescription
+                    }
                 case .finished:
                     break
                 }
@@ -76,7 +94,16 @@ public class SearchRestaurantViewModel {
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {
                 case .failure(let error):
-                    self?.errorMessage = "Failed to fetch best restaurants details: \(error)"
+                    switch error {
+                    case APIError.invalidResponse:
+                        self?.errorMessage = APIError.invalidResponse.errorDescription
+                    case APIError.noInternetConnection:
+                        self?.errorMessage = APIError.noInternetConnection.errorDescription
+                    case APIError.serverError:
+                        self?.errorMessage = APIError.serverError.errorDescription
+                    default:
+                        self?.errorMessage = APIError.unknownError(description: error.localizedDescription).errorDescription
+                    }
                 case .finished:
                     break
                 }
@@ -107,7 +134,16 @@ public class SearchRestaurantViewModel {
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {
                 case .failure(let error):
-                    self?.errorMessage = "Failed to fetch photo URLs: \(error)"
+                    switch error {
+                    case APIError.invalidResponse:
+                        self?.errorMessage = APIError.invalidResponse.errorDescription
+                    case APIError.noInternetConnection:
+                        self?.errorMessage = APIError.noInternetConnection.errorDescription
+                    case APIError.serverError:
+                        self?.errorMessage = APIError.serverError.errorDescription
+                    default:
+                        self?.errorMessage = APIError.unknownError(description: error.localizedDescription).errorDescription
+                    }
                 case .finished:
                     break
                 }
@@ -125,7 +161,16 @@ public class SearchRestaurantViewModel {
                 .sink(receiveCompletion: { [weak self] completion in
                     switch completion {
                     case .failure(let error):
-                        self?.errorMessage = "Failed to fetch photo URL: \(error)"
+                        switch error {
+                        case APIError.invalidResponse:
+                            self?.errorMessage = APIError.invalidResponse.errorDescription
+                        case APIError.noInternetConnection:
+                            self?.errorMessage = APIError.noInternetConnection.errorDescription
+                        case APIError.serverError:
+                            self?.errorMessage = APIError.serverError.errorDescription
+                        default:
+                            self?.errorMessage = APIError.unknownError(description: error.localizedDescription).errorDescription
+                        }
                     case .finished:
                         break
                     }

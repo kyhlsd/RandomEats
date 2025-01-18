@@ -92,6 +92,7 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol {
                 }.first ?? Location(latitude: 37.5663, longitude: 126.9779)
                 promise(.success(location))
             } catch {
+                // TODO: coredata error 처리
                 promise(.failure(error))
             }
         }
@@ -112,6 +113,7 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol {
             }
             try context.save()
         } catch {
+            // TODO: coredata 에러 처리
             print("Failed to update location: \(error)")
         }
     }

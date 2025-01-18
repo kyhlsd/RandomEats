@@ -83,6 +83,28 @@ public class RestaurantMapViewModel {
                 self?.isFetching = false
             }
             .store(in: &cancellables)
+        
+        // error message 바인딩
+        locationViewModel.$errorMessage
+            .compactMap { $0 }
+            .sink { [weak self] errorMessage in
+                self?.errorMessage = errorMessage
+            }
+            .store(in: &cancellables)
+        
+        reverseGeocodingViewModel.$errorMessage
+            .compactMap { $0 }
+            .sink { [weak self] errorMessage in
+                self?.errorMessage = errorMessage
+            }
+            .store(in: &cancellables)
+        
+        searchRestaurantViewModel.$errorMessage
+            .compactMap { $0 }
+            .sink { [weak self] errorMessage in
+                self?.errorMessage = errorMessage
+            }
+            .store(in: &cancellables)
     }
     
     // 위치를 설정하는 경우

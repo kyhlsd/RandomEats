@@ -56,6 +56,7 @@ public class LocationViewModel {
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {
+                    // TODO: Coredata 에러 처리
                 case .failure(let error):
                     self?.errorMessage = "Failed to fetch previous location: \(error)"
                 case .finished:

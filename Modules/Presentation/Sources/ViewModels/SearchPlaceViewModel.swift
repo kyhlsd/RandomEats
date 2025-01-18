@@ -44,7 +44,16 @@ public class SearchPlaceViewModel {
                 .sink(receiveCompletion: { [weak self] completion in
                     switch completion {
                     case .failure(let error):
-                        self?.errorMessage = "Failed to fetch nearby restaurants: \(error)"
+                        switch error {
+                        case APIError.invalidResponse:
+                            self?.errorMessage = APIError.invalidResponse.errorDescription
+                        case APIError.noInternetConnection:
+                            self?.errorMessage = APIError.noInternetConnection.errorDescription
+                        case APIError.serverError:
+                            self?.errorMessage = APIError.serverError.errorDescription
+                        default:
+                            self?.errorMessage = APIError.unknownError(description: error.localizedDescription).errorDescription
+                        }
                     case .finished:
                         break
                     }
@@ -62,7 +71,16 @@ public class SearchPlaceViewModel {
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {
                 case .failure(let error):
-                    self?.errorMessage = "Failed to fetch coordinates: \(error)"
+                    switch error {
+                    case APIError.invalidResponse:
+                        self?.errorMessage = APIError.invalidResponse.errorDescription
+                    case APIError.noInternetConnection:
+                        self?.errorMessage = APIError.noInternetConnection.errorDescription
+                    case APIError.serverError:
+                        self?.errorMessage = APIError.serverError.errorDescription
+                    default:
+                        self?.errorMessage = APIError.unknownError(description: error.localizedDescription).errorDescription
+                    }
                 case .finished:
                     break
                 }

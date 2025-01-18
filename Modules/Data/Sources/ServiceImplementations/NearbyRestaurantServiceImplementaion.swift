@@ -49,8 +49,12 @@ public class NearbyRestaurantServiceImplementaion: NearbyRestaurantServiceProtoc
                     case .success(let response):
                         promise(.success(response))
                     case .failure(let error):
-                        print("Error: \(error)")
-                        promise(.failure(error))
+                        if let urlError = error.asAFError?.underlyingError as? URLError,
+                           urlError.code == .notConnectedToInternet {
+                            promise(.failure(APIError.noInternetConnection))
+                        } else {
+                            promise(.failure(APIError.unknownError(description: error.localizedDescription)))
+                        }
                     }
                 }
         }

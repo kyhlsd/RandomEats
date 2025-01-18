@@ -41,11 +41,15 @@ public class ReverseGeocodingServiceImplementaion: ReverseGeocodingServiceProtoc
                         if let address = response.results.first?.formattedAddress {
                             promise(.success(address))
                         } else {
-                            promise(.failure(NSError(domain: "No address found", code: 1, userInfo: nil)))
+                            promise(.failure(APIError.invalidResponse))
                         }
                     case .failure(let error):
-                        print("Failed to fetch address: \(error.localizedDescription)")
-                        promise(.failure(error))
+                        if let urlError = error.asAFError?.underlyingError as? URLError,
+                           urlError.code == .notConnectedToInternet {
+                            promise(.failure(APIError.noInternetConnection))
+                        } else {
+                            promise(.failure(APIError.unknownError(description: error.localizedDescription)))
+                        }
                     }
                 }
         }
@@ -73,6 +77,7 @@ public class ReverseGeocodingServiceImplementaion: ReverseGeocodingServiceProtoc
                 }.first ?? "서울 시청"
                 promise(.success(address))
             } catch {
+                // TODO: coredata 에러 처리
                 promise(.failure(error))
             }
         }
@@ -91,6 +96,7 @@ public class ReverseGeocodingServiceImplementaion: ReverseGeocodingServiceProtoc
             }
             try context.save()
         } catch {
+            // TODO: coredata 에러 처리
             print("Failed to update address: \(error)")
         }
     }
