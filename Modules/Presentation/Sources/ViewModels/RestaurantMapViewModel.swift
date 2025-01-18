@@ -12,19 +12,18 @@ import Domain
 public class RestaurantMapViewModel {
     let allowedDistances = [100, 200, 300, 400, 500]
     var currentLocation: Location?
-//    var bestRestaurants: [PlaceDetail] = [PlaceDetail(name: "식당 이름", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.575, longitude: 126.989)), url: "https://www.google.com", rating: 4.1, user_ratings_total: 5, photos: nil), PlaceDetail(name: "식당 이름2", geometry: PlaceDetail.Geometry(location: Location(latitude: 37.576, longitude: 126.99)), url: "https://www.naver.com", rating: 4.3, user_ratings_total: 2, photos: nil)]
     var bestRestaurantIDs: [String]?
-    var maximumDistance: Int = 300
     var selectedRestaurantIndex: Int? = nil
     private var restaurants: [PlaceDetail]? = nil
+    var bestRestaurants: [PlaceDetail]?
     var shouldUpdateCurrentLocation = false
-    var isConditionChanged = true
     private var cancellables = Set<AnyCancellable>()
 
     @Published var setLocation: Location?
-    var bestRestaurants: [PlaceDetail]?
     @Published var photoURLs: [String: URL?]?
     @Published var isFetching: Bool = false
+    @Published var maximumDistance: Int = 300
+    @Published var isConditionChanged = true
     @Published var errorMessage: String?
     
     
@@ -56,20 +55,19 @@ public class RestaurantMapViewModel {
         searchRestaurantViewModel.$restaurants
             .compactMap { $0 }
             .sink { [weak self] restaurants in
-                let sortedRestaurants = restaurants
-                    .filter { ($0.user_ratings_total ?? 0) > 0 }
+                guard let self = self else { return }
+                let totalAverageRating = calculateGlobalAverageRating(from: restaurants)
+                self.bestRestaurantIDs = Array(restaurants
                     .sorted {
-                    ($0.user_ratings_total ?? 0) > ($1.user_ratings_total ?? 0)
-                }
-                // 리뷰 많은 10개 중 평점 높은 5개 식당을 best 식당으로 선정
-                self?.bestRestaurantIDs = Array(sortedRestaurants
-                    .prefix(10)
-                    .sorted { ($0.rating ?? 0.0) > ($1.rating ?? 0.0)}
+                        let score1 = self.calculatePopularityScore(reviews: $0.user_ratings_total ?? 0, rating: $0.rating ?? 0.0, totalAverageRating: totalAverageRating, k: 50)
+                        let score2 = self.calculatePopularityScore(reviews: $1.user_ratings_total ?? 0, rating: $1.rating ?? 0.0, totalAverageRating: totalAverageRating, k: 50)
+                        return score1 > score2
+                    }
                     .prefix(5)
                 )
-                .map { $0.place_id}
+                .map { $0.place_id }
                 // 조건 추가
-                self?.fetchBestRestaurantDetails()
+                self.fetchBestRestaurantDetails()
             }
             .store(in: &cancellables)
         
@@ -178,6 +176,29 @@ public class RestaurantMapViewModel {
     func fetchBestRestaurantDetails() {
         guard let bestRestaurantIDs = bestRestaurantIDs else { return }
         searchRestaurantViewModel.fetchBestRestaurantDetails(placeIDs: bestRestaurantIDs)
+    }
+    // 전체 평균 평점 계산
+    func calculateGlobalAverageRating(from restaurants: [PlaceForNearbySearch]) -> Double {
+        let totalRating = restaurants
+            .compactMap { $0.rating }
+            .reduce(0.0, +)
+        
+        let count = restaurants.filter { $0.rating != nil }.count
+        
+        return count > 0 ? totalRating / Double(count) : 0.0
+    }
+    // 인기도 계산 함수
+    private func calculatePopularityScore(reviews: Int, rating: Double, totalAverageRating: Double, k: Int) -> Double {
+        let reviewsDouble = Double(reviews)
+        let kDouble = Double(k)
+        
+        // 리뷰 수와 조정 상수에 따른 가중치 계산
+        let weightForReviews = reviewsDouble / (reviewsDouble + kDouble)
+        let weightForAverage = kDouble / (reviewsDouble + kDouble)
+        
+        // 최종 점수 계산
+        let score = (weightForReviews * rating) + (weightForAverage * totalAverageRating)
+        return score
     }
 }
 
