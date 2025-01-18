@@ -16,6 +16,7 @@ public struct PlacesNearbySearchResponse: Decodable {
 public struct PlaceForNearbySearch: Decodable {
     public let place_id: String
     public let user_ratings_total: Int?
+    public let rating: Double?
 }
 
 public struct PlaceDetailSearchResponse: Decodable {

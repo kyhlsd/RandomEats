@@ -61,7 +61,13 @@ public class RestaurantMapViewModel {
                     .sorted {
                     ($0.user_ratings_total ?? 0) > ($1.user_ratings_total ?? 0)
                 }
-                self?.bestRestaurantIDs = Array(sortedRestaurants.prefix(5)).map { $0.place_id}
+                // 리뷰 많은 10개 중 평점 높은 5개 식당을 best 식당으로 선정
+                self?.bestRestaurantIDs = Array(sortedRestaurants
+                    .prefix(10)
+                    .sorted { ($0.rating ?? 0.0) > ($1.rating ?? 0.0)}
+                    .prefix(5)
+                )
+                .map { $0.place_id}
                 // 조건 추가
                 self?.fetchBestRestaurantDetails()
             }
