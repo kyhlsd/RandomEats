@@ -19,6 +19,7 @@ public class SearchRestaurantViewModel {
     @Published var restaurantDetail: PlaceDetail?
     @Published var photoURL: URL?
     @Published var bestRestaurantDetails: [PlaceDetail]?
+    @Published var photoURLs: [String: URL?]?
     
     // UseCase 주입
     public init(nearbyRestaurantUseCase: NearbyRestaurantUseCaseProtocol, restaurantDetailUseCase: RestaurantDetailUseCaseProtocol) {
@@ -63,7 +64,6 @@ public class SearchRestaurantViewModel {
     
     // best 식당 5개의 정보를 받아오는 함수
     func fetchBestRestaurantDetails(placeIDs: [String]) {
-        
         let detailPublishers = placeIDs.map { placeID in
             restaurantDetailUseCase.getRestaurantDetail(placeId: placeID)
         }
@@ -80,6 +80,37 @@ public class SearchRestaurantViewModel {
                 }
             }, receiveValue: { [weak self] fetchedDetails in
                 self?.bestRestaurantDetails = fetchedDetails
+                self?.fetchBestRestaurantPhotoURLs(placeDetails: fetchedDetails)
+            })
+            .store(in: &cancellables)
+    }
+    
+    // best 식당 5개의 이미지 레퍼렌스로 이미지들 불러오는 함수
+    func fetchBestRestaurantPhotoURLs(placeDetails: [PlaceDetail]) {
+        let photoURLPublishers = placeDetails.compactMap { detail -> AnyPublisher<(String, URL?), Error>? in
+            guard let photoReference = detail.photos?.first?.photo_reference else {
+                return Just((detail.name, nil))
+                    .setFailureType(to: Error.self)
+                    .eraseToAnyPublisher()
+            }
+            
+            return restaurantDetailUseCase.getPhotoURL(photoReference: photoReference)
+                .map { (detail.name, $0) }
+                .eraseToAnyPublisher()
+        }
+        
+        Publishers.MergeMany(photoURLPublishers)
+            .collect()
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    self?.errorMessage = "Failed to fetch photo URLs: \(error)"
+                case .finished:
+                    break
+                }
+            }, receiveValue: { [weak self] fetchedPhotoURLs in
+                self?.photoURLs = Dictionary(uniqueKeysWithValues: fetchedPhotoURLs)
             })
             .store(in: &cancellables)
     }

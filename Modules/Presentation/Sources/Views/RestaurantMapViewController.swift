@@ -308,10 +308,10 @@ public class RestaurantMapViewController: UIViewController {
                 }
             }
             .store(in: &cancellables)
-        // best 식당 정보 바인딩
-        restaurantMapViewModel.$bestRestaurants
-            .sink { bestRestaurants in
-                if let bestRestaurants = bestRestaurants {
+        // best 식당 사진 URL 바인딩
+        restaurantMapViewModel.$photoURLs
+            .sink { photoURLs in
+                if let photoURLs = photoURLs, let bestRestaurants = self.restaurantMapViewModel.bestRestaurants {
                     self.addAnnotation(bestRestaurants: bestRestaurants)
                 }
             }
@@ -618,22 +618,21 @@ public class RestaurantMapViewController: UIViewController {
         let resizedImage = resizeImage(image: photoImage, to: CGSize(width: 80, height: 80))
         let paddedImage = addPaddingToImage(image: resizedImage, paddingSize: 80, paddingColor: .white)
         
-        // TODO: photo url 가져오기
-//        if let photoURL =  {
-//            // 이미지 정보가 있는 식당일 경우
-//            DispatchQueue.main.async {
-//                self.placeImageView.kf.setImage(with: photoURL, placeholder: paddedImage, options: [
-//                    .cacheOriginalImage,
-//                ])
-//                self.noImageLabel.isHidden = true
-//            }
-//        } else {
-//            // 이미지 정보가 없는 식당일 경우
-//            DispatchQueue.main.async {
-//                self.placeImageView.image = paddedImage
-//                self.noImageLabel.isHidden = false
-//            }
-//        }
+        if let photoURL = restaurantMapViewModel.photoURLs?[selectedPlaceDetail.name] {
+            // 이미지 정보가 있는 식당일 경우
+            DispatchQueue.main.async {
+                self.placeImageView.kf.setImage(with: photoURL, placeholder: paddedImage, options: [
+                    .cacheOriginalImage,
+                ])
+                self.noImageLabel.isHidden = true
+            }
+        } else {
+            // 이미지 정보가 없는 식당일 경우
+            DispatchQueue.main.async {
+                self.placeImageView.image = paddedImage
+                self.noImageLabel.isHidden = false
+            }
+        }
     }
     //MARK: Alert 함수
     private func showPermissionDeniedAlert() {

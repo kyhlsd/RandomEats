@@ -22,9 +22,11 @@ public class RestaurantMapViewModel {
     private var cancellables = Set<AnyCancellable>()
 
     @Published var setLocation: Location?
-    @Published var bestRestaurants: [PlaceDetail]?
-    @Published var errorMessage: String?
+    var bestRestaurants: [PlaceDetail]?
+    @Published var photoURLs: [String: URL?]?
     @Published var isFetching: Bool = false
+    @Published var errorMessage: String?
+    
     
     let locationViewModel: LocationViewModel
     private let reverseGeocodingViewModel: ReverseGeocodingViewModel
@@ -60,6 +62,7 @@ public class RestaurantMapViewModel {
                     ($0.user_ratings_total ?? 0) > ($1.user_ratings_total ?? 0)
                 }
                 self?.bestRestaurantIDs = Array(sortedRestaurants.prefix(5)).map { $0.place_id}
+                // 조건 추가
                 self?.fetchBestRestaurantDetails()
             }
             .store(in: &cancellables)
@@ -68,6 +71,13 @@ public class RestaurantMapViewModel {
             .compactMap { $0 }
             .sink { [weak self] restaurants in
                 self?.bestRestaurants = restaurants
+            }
+            .store(in: &cancellables)
+        
+        searchRestaurantViewModel.$photoURLs
+            .compactMap { $0 }
+            .sink { [weak self] photoURLs in
+                self?.photoURLs = photoURLs
                 self?.isFetching = false
             }
             .store(in: &cancellables)
