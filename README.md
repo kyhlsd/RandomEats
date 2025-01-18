@@ -3,7 +3,7 @@
 ## 📌 프로젝트 소개
 <h2><strong>내 주변 식당을 랜덤 추천해주고, 주위 인기 식당을 보여주는 앱</strong></h2><br/>
 <ul>
-  <li>API의 연쇄적인 사용을 Combine + Alamofire 활용해 관리</li>
+  <li>API의 연쇄적인 사용을 Combine + Alamofire 활용해 관리</li>
   <li>데이터 흐름에 따라 indicatorView, 사진 표기, 지도 확대/축소 등 View가 따라오도록 중점</li>
   <li>Tuist + 클린 아키텍처 및 시도해보지 않았던 기술 시도해보려는 것에 의의</li>
 </ul>
@@ -45,7 +45,7 @@
 
 #### 내 주변 식당 랜덤 추천
 - 내 위치, 최대 거리 설정 가능
-- Nearby Search API -> Place Detail API 연쇄적으로 사용해 식당 정보 불러오기
+- Nearby Search API -> Place Detail API 연쇄적으로 사용해 식당 정보 불러오기
 - 조건이 변경되었을 시 다시 정보를 가져오고, 조건이 같다면 해당 정보 내에서 다시 랜덤 추천
 - Combine + Alamofire 사용해 비동기 처리, 정보를 불러오는 동안 indicatorView 표기
 
@@ -65,7 +65,6 @@
 
 
 ## 📌 회고
-<details>
 
 #### Keep
 - 해보지 못했던 기술 스택을 연습했다는 점에서 의미가 있었다.
