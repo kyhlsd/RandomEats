@@ -103,7 +103,16 @@ class SearchPlaceViewController: UIViewController {
         searchPlaceViewModel.$errorMessage
             .sink { errorMessage in
                 if let errorMessage = errorMessage {
-                    print("Error: \(errorMessage)")
+                    if errorMessage == LocationServiceError.permissionDenied.errorDescription {
+                        self.showPermissionDeniedAlert()
+                    } else if errorMessage == LocationServiceError.permissionRestricted.errorDescription {
+                        self.showPermissionRestrictedAlert()
+                    } else if errorMessage == LocationServiceError.unknownError.errorDescription {
+                        self.showLocationUnknownErrorAlert()
+                    }
+                    else {
+                        self.showErrorAlert(errorMessage: errorMessage)
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -124,6 +133,70 @@ class SearchPlaceViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
             tableView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
         ])
+    }
+    //MARK: Alert 함수
+    private func showPermissionDeniedAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(
+                title: "위치 서비스 권한 필요",
+                message: self.searchPlaceViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "설정으로 이동", style: .default, handler: { _ in
+                if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsURL)
+                }
+            }))
+            alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+            
+            self.present(alert, animated: true)
+        }
+    }
+    
+    private func showPermissionRestrictedAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let alert = UIAlertController(
+                title: "위치 서비스 권한 필요",
+                message: self.searchPlaceViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "확인", style: .default))
+            
+            self.present(alert, animated: true)
+        }
+    }
+    
+    private func showLocationUnknownErrorAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(
+                title: "위치 정보 가져오기 실패",
+                message: self.searchPlaceViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "닫기", style: .default))
+            
+            self.present(alert, animated: true)
+        }
+    }
+    
+    private func showErrorAlert(errorMessage: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(
+                title: "Error",
+                message: errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "닫기", style: .default))
+            
+            self.present(alert, animated: true)
+        }
     }
 }
 

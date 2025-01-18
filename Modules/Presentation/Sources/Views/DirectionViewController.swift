@@ -177,7 +177,7 @@ class DirectionViewController: UIViewController {
                         self.showLocationUnknownErrorAlert()
                     }
                     else {
-                        print("Error: \(errorMessage)")
+                        self.showErrorAlert(errorMessage: errorMessage)
                     }
                 }
             }
@@ -319,6 +319,21 @@ class DirectionViewController: UIViewController {
             let alert = UIAlertController(
                 title: "위치 정보 가져오기 실패",
                 message: self.directionViewModel.errorMessage,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "닫기", style: .default))
+            
+            self.present(alert, animated: true)
+        }
+    }
+    
+    private func showErrorAlert(errorMessage: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let alert = UIAlertController(
+                title: "Error",
+                message: errorMessage,
                 preferredStyle: .alert
             )
             alert.addAction(UIAlertAction(title: "닫기", style: .default))
