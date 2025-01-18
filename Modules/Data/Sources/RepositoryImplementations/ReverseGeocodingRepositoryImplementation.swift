@@ -23,7 +23,7 @@ public class ReverseGeocodingRepositoryImplementation: ReverseGeocodingRepositor
         return reverseGeocodingService.fetchPreviousAddress()
     }
     
-    public func updateCoreDataAddress(address: String) {
+    public func updateCoreDataAddress(address: String) -> AnyPublisher<Void, Error> {
         return reverseGeocodingService.updateCoreDataAddress(address: address)
     }
 }

@@ -12,5 +12,5 @@ import Combine
 public protocol LocationServiceProtocol {
     func fetchCurrentLocation() -> AnyPublisher<Location, Error>
     func fetchPreviousLocation() -> AnyPublisher<Location, any Error>
-    func updateCoreDataLocation(location: Location)
+    func updateCoreDataLocation(location: Location) -> AnyPublisher<Void, any Error>
 }

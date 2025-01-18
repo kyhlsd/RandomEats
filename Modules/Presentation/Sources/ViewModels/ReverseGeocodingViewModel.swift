@@ -53,8 +53,14 @@ public class ReverseGeocodingViewModel {
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {
                 case .failure(let error):
-                    // TODO: Coredata 에러 처리
-                    self?.errorMessage = "Failed to fetch previous address: \(error)"
+                    switch error {
+                    case CoreDataError.saveFailed:
+                        self?.errorMessage = CoreDataError.saveFailed.errorDescription
+                    case CoreDataError.fetchFailed:
+                        self?.errorMessage = CoreDataError.fetchFailed.errorDescription
+                    default:
+                        self?.errorMessage = CoreDataError.unknown(description: error.localizedDescription).errorDescription
+                    }
                 case .finished:
                     break
                 }
@@ -66,5 +72,22 @@ public class ReverseGeocodingViewModel {
     
     func updateCoreDataAddress(address: String) {
         reverseGeocodingUseCase.updateCoreDataAddress(address: address)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    switch error {
+                    case CoreDataError.saveFailed:
+                        self?.errorMessage = CoreDataError.saveFailed.errorDescription
+                    case CoreDataError.fetchFailed:
+                        self?.errorMessage = CoreDataError.fetchFailed.errorDescription
+                    default:
+                        self?.errorMessage = CoreDataError.unknown(description: error.localizedDescription).errorDescription
+                    }
+                case .finished:
+                    break
+                }
+            }, receiveValue: {})
+            .store(in: &cancellables)
     }
 }

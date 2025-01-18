@@ -23,7 +23,7 @@ public class LocationRepositoryImplementation: LocationRepositoryProtocol {
         return locationService.fetchPreviousLocation()
     }
     
-    public func updateCoreDataLocation(location: Location) {
+    public func updateCoreDataLocation(location: Location) -> AnyPublisher<Void, any Error> {
         locationService.updateCoreDataLocation(location: location)
     }
 }

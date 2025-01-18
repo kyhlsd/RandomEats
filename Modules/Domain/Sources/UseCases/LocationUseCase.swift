@@ -11,7 +11,7 @@ import Combine
 public protocol LocationUseCaseProtocol {
     func getCurrentLocation() -> AnyPublisher<Location, Error>
     func fetchPreviousLocation() -> AnyPublisher<Location, Error>
-    func updateCoreDataLocation(location: Location)
+    func updateCoreDataLocation(location: Location) -> AnyPublisher<Void, any Error>
 }
 
 public class LocationUseCase: LocationUseCaseProtocol {
@@ -29,7 +29,7 @@ public class LocationUseCase: LocationUseCaseProtocol {
         return locationRepository.fetchPreviousLocation()
     }
     
-    public func updateCoreDataLocation(location: Location) {
+    public func updateCoreDataLocation(location: Location) -> AnyPublisher<Void, any Error> {
         locationRepository.updateCoreDataLocation(location: location)
     }
 }

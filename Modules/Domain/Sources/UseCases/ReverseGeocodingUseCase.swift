@@ -11,7 +11,7 @@ import Combine
 public protocol ReverseGeocodingUseCaseProtocol {
     func getReverseGeocodedAddress(latitude: Double, longitude: Double) -> AnyPublisher<String, any Error>
     func fetchPreviousAddress() -> AnyPublisher<String, Error>
-    func updateCoreDataAddress(address: String)
+    func updateCoreDataAddress(address: String) -> AnyPublisher<Void, Error>
 }
 
 public class ReverseGeocodingUseCase: ReverseGeocodingUseCaseProtocol {
@@ -29,7 +29,7 @@ public class ReverseGeocodingUseCase: ReverseGeocodingUseCaseProtocol {
         return reverseGeocodingRepository.fetchPreviousAddress()
     }
     
-    public func updateCoreDataAddress(address: String) {
+    public func updateCoreDataAddress(address: String) -> AnyPublisher<Void, Error> {
         return reverseGeocodingRepository.updateCoreDataAddress(address: address)
     }
 }

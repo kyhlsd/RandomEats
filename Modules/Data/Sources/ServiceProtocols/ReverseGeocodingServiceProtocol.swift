@@ -11,5 +11,5 @@ import Combine
 public protocol ReverseGeocodingServiceProtocol {
     func fetchAddress(latitude: Double, longitude: Double) -> AnyPublisher<String, any Error>
     func fetchPreviousAddress() -> AnyPublisher<String, any Error>
-    func updateCoreDataAddress(address: String)
+    func updateCoreDataAddress(address: String) -> AnyPublisher<Void, Error>
 }

@@ -92,30 +92,46 @@ public class LocationServiceImplementation: NSObject, LocationServiceProtocol {
                 }.first ?? Location(latitude: 37.5663, longitude: 126.9779)
                 promise(.success(location))
             } catch {
-                // TODO: coredata error 처리
-                promise(.failure(error))
+                switch error {
+                case CoreDataError.saveFailed:
+                    promise(.failure(CoreDataError.saveFailed))
+                case CoreDataError.fetchFailed:
+                    promise(.failure(CoreDataError.fetchFailed))
+                default:
+                    promise(.failure(CoreDataError.unknown(description: error.localizedDescription)))
+                }
             }
         }
         .eraseToAnyPublisher()
     }
     
-    public func updateCoreDataLocation(location: Location) {
+    public func updateCoreDataLocation(location: Location) -> AnyPublisher<Void, Error> {
         let fetchRequest: NSFetchRequest<LocationEntity> = LocationEntity.fetchRequest()
-        do {
-            let results = try context.fetch(fetchRequest)
-            if let locationEntity = results.first {
-                locationEntity.latitude = location.getLatitude()
-                locationEntity.longitude = location.getLongitude()
-            } else {
-                let newLocationEntity = LocationEntity(context: context)
-                newLocationEntity.latitude = location.getLatitude()
-                newLocationEntity.longitude = location.getLongitude()
+        return Future { promise in
+            do {
+                let results = try self.context.fetch(fetchRequest)
+                if let locationEntity = results.first {
+                    locationEntity.latitude = location.getLatitude()
+                    locationEntity.longitude = location.getLongitude()
+                } else {
+                    let newLocationEntity = LocationEntity(context: self.context)
+                    newLocationEntity.latitude = location.getLatitude()
+                    newLocationEntity.longitude = location.getLongitude()
+                }
+                try self.context.save()
+                promise(.success(()))
+            } catch {
+                switch error {
+                case CoreDataError.saveFailed:
+                    promise(.failure(CoreDataError.saveFailed))
+                case CoreDataError.fetchFailed:
+                    promise(.failure(CoreDataError.fetchFailed))
+                default:
+                    promise(.failure(CoreDataError.unknown(description: error.localizedDescription)))
+                }
             }
-            try context.save()
-        } catch {
-            // TODO: coredata 에러 처리
-            print("Failed to update location: \(error)")
         }
+        .eraseToAnyPublisher()
     }
 }
 

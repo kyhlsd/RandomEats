@@ -56,9 +56,15 @@ public class LocationViewModel {
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {
-                    // TODO: Coredata 에러 처리
                 case .failure(let error):
-                    self?.errorMessage = "Failed to fetch previous location: \(error)"
+                    switch error {
+                    case CoreDataError.saveFailed:
+                        self?.errorMessage = CoreDataError.saveFailed.errorDescription
+                    case CoreDataError.fetchFailed:
+                        self?.errorMessage = CoreDataError.fetchFailed.errorDescription
+                    default:
+                        self?.errorMessage = CoreDataError.unknown(description: error.localizedDescription).errorDescription
+                    }
                 case .finished:
                     break
                 }
@@ -70,6 +76,23 @@ public class LocationViewModel {
     
     func updateCoreDataLocation(location: Location) {
         locationUseCase.updateCoreDataLocation(location: location)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    switch error {
+                    case CoreDataError.saveFailed:
+                        self?.errorMessage = CoreDataError.saveFailed.errorDescription
+                    case CoreDataError.fetchFailed:
+                        self?.errorMessage = CoreDataError.fetchFailed.errorDescription
+                    default:
+                        self?.errorMessage = CoreDataError.unknown(description: error.localizedDescription).errorDescription
+                    }
+                case .finished:
+                    break
+                }
+            }, receiveValue: {})
+            .store(in: &cancellables)
     }
 }
 

@@ -77,27 +77,43 @@ public class ReverseGeocodingServiceImplementaion: ReverseGeocodingServiceProtoc
                 }.first ?? "서울 시청"
                 promise(.success(address))
             } catch {
-                // TODO: coredata 에러 처리
-                promise(.failure(error))
+                switch error {
+                case CoreDataError.saveFailed:
+                    promise(.failure(CoreDataError.saveFailed))
+                case CoreDataError.fetchFailed:
+                    promise(.failure(CoreDataError.fetchFailed))
+                default:
+                    promise(.failure(CoreDataError.unknown(description: error.localizedDescription)))
+                }
             }
         }
         .eraseToAnyPublisher()
     }
     
-    public func updateCoreDataAddress(address: String) {
+    public func updateCoreDataAddress(address: String) -> AnyPublisher<Void, Error> {
         let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
-        do {
-            let results = try context.fetch(fetchRequest)
-            if let addressEntity = results.first {
-                addressEntity.address = address
-            } else {
-                let newAddressEntity = AddressEntity(context: context)
-                newAddressEntity.address = address
+        return Future { promise in
+            do {
+                let results = try self.context.fetch(fetchRequest)
+                if let addressEntity = results.first {
+                    addressEntity.address = address
+                } else {
+                    let newAddressEntity = AddressEntity(context: self.context)
+                    newAddressEntity.address = address
+                }
+                try self.context.save()
+                promise(.success(()))
+            } catch {
+                switch error {
+                case CoreDataError.saveFailed:
+                    promise(.failure(CoreDataError.saveFailed))
+                case CoreDataError.fetchFailed:
+                    promise(.failure(CoreDataError.fetchFailed))
+                default:
+                    promise(.failure(CoreDataError.unknown(description: error.localizedDescription)))
+                }
             }
-            try context.save()
-        } catch {
-            // TODO: coredata 에러 처리
-            print("Failed to update address: \(error)")
         }
+        .eraseToAnyPublisher()
     }
 }
