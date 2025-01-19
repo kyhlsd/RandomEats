@@ -13,9 +13,8 @@
 
 > 개인 프로젝트
 
-## 📌 개발도구 및 기술스택
+## 📌 기술스택
 
-#### 기술스택
 - iOS: UIKit
 - Software Architecture: 클린 아키텍처 + MVVM
 - Tuist, Combine, CombineSwift, Alamofire, RESTful API, Kingfisher
