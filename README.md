@@ -35,10 +35,10 @@
     <th><code>길찾기</code></th>
   </tr>
   <tr>
-    <td><img src="https://github.com/user-attachments/assets/5b0146f6-c781-4319-b836-031d4bc2b4e2" alt="내 주변 식당 랜덤 추천"></td>
-    <td><img src="https://github.com/user-attachments/assets/7cc26cb1-5c22-4370-af8b-354dc03fc2d1" alt="위치 검색"></td>
-    <td><img src="https://github.com/user-attachments/assets/fa5be1ab-4dbc-448d-8688-62d214289030" alt="내 주변 인기 식당 표기"></td>
-    <td><img src="https://github.com/user-attachments/assets/557b5a4f-e24b-4ac4-a371-b237a2802451" alt="길찾기"></td>
+    <td><img src="https://github.com/user-attachments/assets/c6c80af0-cfd8-4406-bb49-d5624b3ec96c" alt="내 주변 식당 랜덤 추천"></td>
+    <td><img src="https://github.com/user-attachments/assets/32bdc12b-a86a-4577-94db-71b65eff7ac1" alt="위치 검색"></td>
+    <td><img src="https://github.com/user-attachments/assets/18d903db-2d16-4920-a3dd-46e3f7b59984" alt="내 주변 인기 식당 표기"></td>
+    <td><img src="https://github.com/user-attachments/assets/13e279e6-c22c-4cec-925a-f2b966204f72" alt="길찾기"></td>
   </tr>
 </table>
 <br/>
