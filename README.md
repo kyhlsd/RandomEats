@@ -15,10 +15,6 @@
 
 ## 📌 개발도구 및 기술스택
 
-#### 개발환경
-- Swift 5.10
-- Xcode 15.4
-- iOS 17.0
 #### 기술스택
 - iOS: UIKit
 - Software Architecture: 클린 아키텍처 + MVVM
